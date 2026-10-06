@@ -13,8 +13,6 @@ Requires(pre):  asterisk
 Requires:       php php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
 Requires:       gettext
 
-%{?el8:Requires: php-pear php-pear-DB}
-
 %undefine __brp_mangle_shebangs
 %define debug_package %{nil}
 
@@ -35,8 +33,6 @@ cp        %{buildroot}/usr/src/issabelPBX/build/5.0/files/issabelpbx.logrotate  
 chmod 644 %{buildroot}/etc/logrotate.d/*
 
 %post
-
-pear install DB >/dev/null 2>&1 || :
 
 PODIR=/usr/src/issabelPBX
 
