@@ -87,7 +87,7 @@ $h_step = 30;
 				<?php $calldate_tooltip = __("Select time span for your report. You can select Date, Month, Year, Hour and Minute to narrow your search");?>
 				<td><input <?php if (empty($_POST['order']) || $_POST['order'] == 'calldate') { echo 'checked="checked"'; } ?> type="radio" name="order" value="calldate" />&nbsp;<?php echo "<a href=\"#\" class=\"info\">".__("Call Date")."<span>".$calldate_tooltip."</span></a>"?></td>
 				<td>
-				<input type="text" name="dates" class="input" value='<?php echo isset($_POST['dates'])?$_POST['dates']:'';?>'>
+				<input type="text" name="dates" class="input" value='<?php echo isset($_POST['dates'])?htmlspecialchars($_POST['dates']):'';?>'>
 <!--
 				<input type="text" name="startday" id="startday" size="2" maxlength="2" value="<?php if (isset($_POST['startday'])) { echo htmlspecialchars($_POST['startday']); } else { echo '01'; } ?>" />
 				<select name="startmonth" id="startmonth">
@@ -916,7 +916,7 @@ if ( isset($_POST['need_chart']) && $_POST['need_chart'] == 'true' ) {
 			$percent_tot_duration = intval($row['total_duration']/$tot_duration_secs*100);
 			$html_duration = sprintf('%02d', intval($row['total_duration']/60)).':'.sprintf('%02d', intval($row['total_duration']%60));
 			echo "  <tr>\n";
-			echo "    <td class=\"end_col\">".$row['group_by_field']."</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">".$row['total_calls']." - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"chart_data\">$avg_call_time</td>\n";
+			echo "    <td class=\"end_col\">".htmlspecialchars($row['group_by_field'])."</td><td class=\"center_col\"><div class=\"bar_calls\" style=\"width : $bar_calls%\">".$row['total_calls']." - $percent_tot_calls%</div><div class=\"bar_duration\" style=\"width : $bar_duration%\">$html_duration - $percent_tot_duration%</div></td><td class=\"chart_data\">$avg_call_time</td>\n";
 			echo "    <td></td>\n";
 			echo "    <td></td>\n";
 			echo "  </tr>\n";
