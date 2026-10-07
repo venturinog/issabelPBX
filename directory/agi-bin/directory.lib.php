@@ -212,7 +212,10 @@ class Dir{
 				//we dont call the flite app cirectly as it still uses | as a parameter separator
 			case 'tts':
 				$tmp = $this->agi_get_var('ASTSPOOLDIR') . '/tmp/directory-tts-' . time() . rand(100, 999);
-				system('flite -t "' . $con['name'] .'" -o ' . $tmp . '.wav', $exit_code);
+				// $con['name'] comes from the directory entry, which any user able
+				// to add one controls. The double quotes did not protect it: $(...)
+				// and backticks are still expanded by the shell inside them.
+				system('flite -t ' . escapeshellarg($con['name']) . ' -o ' . escapeshellarg($tmp . '.wav'), $exit_code);
 				if ($exit_code === 0) {
 						$ret = $this->agi->stream_file($tmp, $keys);
 						if ($ret['result']) {
