@@ -338,11 +338,22 @@ function cidlookup_list($all=false) {
 }
 
 function cidlookup_get($id){
+    // cidlookup_id is an auto-increment key and $id comes straight from
+    // $_REQUEST['extdisplay'], so reject anything that is not a plain integer
+    // instead of letting it break out of the quoted literal.
+    if (!is_scalar($id) || !ctype_digit((string)$id)) {
+        return null;
+    }
+    $id = (int)$id;
     $results = sql("SELECT * FROM cidlookup WHERE cidlookup_id = '$id'","getRow",DB_FETCHMODE_ASSOC);
     return isset($results)?$results:null;
 }
 
 function cidlookup_del($id){
+    if (!is_scalar($id) || !ctype_digit((string)$id)) {
+        return;
+    }
+    $id = (int)$id;
     // Deleting source and its associations
     $results = sql("DELETE FROM cidlookup WHERE cidlookup_id = '$id'","query");
     $results = sql("DELETE FROM cidlookup_incoming WHERE cidlookup_id = '$id'","query");
@@ -383,6 +394,13 @@ function cidlookup_add($post){
 
 function cidlookup_edit($id,$post){
     global $db;
+
+    // See cidlookup_get(): the key is an integer, so validate before it is
+    // interpolated into the UPDATE below.
+    if (!is_scalar($id) || !ctype_digit((string)$id)) {
+        return;
+    }
+    $id = (int)$id;
 
     $description = $db->escapeSimple($post['description']);
     $sourcetype = $db->escapeSimple($post['sourcetype']);
