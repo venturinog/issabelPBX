@@ -54,6 +54,12 @@ function trunkbalance_listtimegroup() {
 
 
 function trunkbalance_get($id){
+	// trunkbalance_id is an auto-increment key and $id comes straight from
+	// $_REQUEST['extdisplay'], so reject anything that is not a plain integer.
+	if (!is_scalar($id) || !ctype_digit((string)$id)) {
+		return null;
+	}
+	$id = (int)$id;
 	$results = sql("SELECT * FROM trunkbalance WHERE trunkbalance_id = '$id'","getRow",DB_FETCHMODE_ASSOC);
 	return isset($results)?$results:null;
 }
@@ -65,6 +71,10 @@ function trunkbalance_trunkid($trunkname){
 
 
 function trunkbalance_del($id){
+	if (!is_scalar($id) || !ctype_digit((string)$id)) {
+		return;
+	}
+	$id = (int)$id;
 	// Deleting source and its associations
 	$trunkname = sql("SELECT `description`FROM `trunkbalance` WHERE trunkbalance_id='$id'","getOne");
 	$trunknum = trunkbalance_trunkid($trunkname);
@@ -166,6 +176,13 @@ function trunkbalance_add($post){
 
 function trunkbalance_edit($id,$post){
 	global $db;
+
+	// See trunkbalance_get(): the key is an integer, so validate it before it
+	// is interpolated into the UPDATE at the end of this function.
+	if (!is_scalar($id) || !ctype_digit((string)$id)) {
+		return;
+	}
+	$id = (int)$id;
 
 	$desttrunk_id = $db->escapeSimple($post['desttrunk_id']);
 	$disabled = $db->escapeSimple($post['disabled']);
