@@ -705,8 +705,9 @@ function voicemail_draw_vmxgui($extdisplay, $disable) {
 }
 
 function voicemail_configprocess() {
-    //create vars from the request
-    extract($_REQUEST);
+    //create vars from the request. EXTR_SKIP so a request key cannot overwrite an
+    // already assigned local (or a global such as $db).
+    extract($_REQUEST, EXTR_SKIP);
     $action = isset($_REQUEST['action'])?$_REQUEST['action']:null;
     $extdisplay = isset($_REQUEST['extdisplay'])?$_REQUEST['extdisplay']:null;
     
@@ -814,7 +815,10 @@ function voicemail_mailbox_add($mbox, $mboxoptsarray) {
     }
     
     $uservm = voicemail_getVoicemail();
-    extract($mboxoptsarray);
+    // $mboxoptsarray is $_REQUEST at the call sites, so EXTR_SKIP is required:
+    // without it a "uservm" key would replace the value fetched just above and
+    // it would be written back to voicemail.conf.
+    extract($mboxoptsarray, EXTR_SKIP);
     
     if ($vm != 'disabled')
     { 
