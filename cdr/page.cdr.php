@@ -520,7 +520,8 @@ $mod_vars['userfield'][] = empty($_POST['userfield_neg']) ? NULL : $_POST['userf
 $mod_vars['accountcode'][] = !isset($_POST['accountcode']) ? NULL : $_POST['accountcode'];
 $mod_vars['accountcode'][] = empty($_POST['accountcode_mod']) ? NULL : $_POST['accountcode_mod'];
 $mod_vars['accountcode'][] = empty($_POST['accountcode_neg']) ? NULL : $_POST['accountcode_neg'];
-$result_limit = (!isset($_POST['limit']) || empty($_POST['limit'])) ? $db_result_limit : $_POST['limit'];
+$result_limit = (!isset($_POST['limit']) || !is_numeric($_POST['limit']) || (int)$_POST['limit'] < 1)
+	? $db_result_limit : (int)$_POST['limit'];
 
 $multi = array('dst', 'cnum', 'outbound_cnum');
 foreach ($mod_vars as $key => $val) {
@@ -624,8 +625,15 @@ if ( isset($_POST['disposition_neg']) && $_POST['disposition_neg'] == 'true' ) {
 }
 
 $duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "AND duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
-$order = empty($_POST['order']) ? 'ORDER BY calldate' : "ORDER BY $_POST[order]";
-$sort = empty($_POST['sort']) ? 'DESC' : $_POST['sort'];
+// $_POST['order'], ['sort'] and ['limit'] are interpolated unquoted into the
+// query below, so restrict each to the values the form can actually produce.
+$order_cols = array('calldate','cnum','cnam','outbound_cnum','did','dst',
+	'dst_cnam','userfield','accountcode','duration','disposition');
+$order_col = (!empty($_POST['order']) && in_array($_POST['order'],$order_cols,true))
+	? $_POST['order'] : 'calldate';
+$order = "ORDER BY `".$order_col."`";
+$sort = (!empty($_POST['sort']) && in_array($_POST['sort'],array('ASC','DESC'),true))
+	? $_POST['sort'] : 'DESC';
 $group = empty($_POST['group']) ? 'day' : $_POST['group'];
 
 //Allow people to search SRC and DSTChannels using existing fields
@@ -769,6 +777,14 @@ if ( $tot_calls_raw ) {
 echo '<a id="Graph"></a>';
 
 //NEW GRAPHS
+// $group is used below as a bare SQL SELECT expression whenever the switch does
+// not match, so restrict it to the values the form offers.
+$group_whitelist = array('accountcode','userfield','hour','hour_of_day','day_of_week',
+	'day','week','month','dst','did','cnum','cnam','outbound_cnum','outbound_cnam',
+	'dst_cnam','disposition','disposition_by_day','disposition_by_hour','dcontext');
+if (!in_array($group,$group_whitelist,true)) {
+	$group = 'day';
+}
 $group_by_field = $group;
 // ConcurrentCalls
 $group_by_field_php = array( '', 32, '' );
