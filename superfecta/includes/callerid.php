@@ -281,7 +281,7 @@ foreach ($scheme_name_array as $list) {
                     $superfecta->outn("<b>SPAM Call sent to:</b> " . $spam_dest);
                 }
                 $superfecta->out("<b>Returned Result would be: ");
-                $callerid = utf8_encode($spam_text . " " . $superfecta->get_Prefix() . $callerid);
+                $callerid = mb_convert_encoding($spam_text . " " . $superfecta->get_Prefix() . $callerid, 'UTF-8', 'ISO-8859-1');
                 $superfecta->outn($callerid);
                 $end_time_whole = ($end_time_whole == 0) ? $superfecta->mctime_float() : $end_time_whole;
                 $superfecta->outn("result <img src='images/scrollup.gif'> took " . number_format(($end_time_whole - $start_time_whole), 4) . " seconds.</b>");

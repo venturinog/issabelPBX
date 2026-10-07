@@ -204,12 +204,12 @@ function superfecta_update_scheme($post) {
     $CID_rules            = $db->escapeSimple($post['CID_rules']);
     $Prefix_URL           = $db->escapeSimple($post['Prefix_URL']);
     $Curl_Timeout         = $db->escapeSimple($post['Curl_Timeout']);
-    $http_password        = isset($post['http_password'])?$db->escapeSimple(utf8_decode($post['http_password'])):'';
-    $http_username        = isset($post['http_username'])?$db->escapeSimple(utf8_decode($post['http_username'])):'';
+    $http_password        = isset($post['http_password'])?$db->escapeSimple(mb_convert_encoding($post['http_password'], 'ISO-8859-1', 'UTF-8')):'';
+    $http_username        = isset($post['http_username'])?$db->escapeSimple(mb_convert_encoding($post['http_username'], 'ISO-8859-1', 'UTF-8')):'';
     $SPAM_Text            = $db->escapeSimple($post['SPAM_Text']);
     $SPAM_Text_Substitute = (isset($post['SPAM_Text_Substitute'])) ? $db->escapeSimple($post['SPAM_Text_Substitute']) : 'N';
-    $processor            = $db->escapeSimple(utf8_decode($post['processor']));
-    $multifecta_timeout   = $db->escapeSimple(utf8_decode($post['multifecta_timeout']));
+    $processor            = $db->escapeSimple(mb_convert_encoding($post['processor'], 'ISO-8859-1', 'UTF-8'));
+    $multifecta_timeout   = $db->escapeSimple(mb_convert_encoding($post['multifecta_timeout'], 'ISO-8859-1', 'UTF-8'));
     $SPAM_threshold       = isset($post['SPAM_threshold'])?$db->escapeSimple($post['SPAM_threshold']):3;
     $status               = $db->escapeSimple($post['status']);
     $type                 = $db->escapeSimple($post['goto0']);

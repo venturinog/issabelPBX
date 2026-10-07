@@ -487,12 +487,12 @@ class superfecta_base {
         $tmp = $string;
         $count = 0;
         while ($this->isutf8($tmp)) {
-            $tmp = utf8_decode($tmp);
+            $tmp = mb_convert_encoding($tmp, 'ISO-8859-1', 'UTF-8');
             $count++;
         }
 
         for ($i = 0; $i < $count - 1; $i++) {
-            $string = utf8_decode($string);
+            $string = mb_convert_encoding($string, 'ISO-8859-1', 'UTF-8');
         }
         return $string;
     }
