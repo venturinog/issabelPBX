@@ -12,6 +12,12 @@ BuildRequires:  bash php php-cli
 Requires(pre):  asterisk
 Requires:       php php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
 Requires:       gettext
+# issabelpbx_db extends the PEAR DB class (issabelpbx_DB.php:3), and
+# db_connect.php requires DB.php on every admin page via bootstrap.php.
+# Without /usr/share/pear/DB.php the whole GUI dies with
+# 'Class "DB" not found'. No EL10 package provides it
+# (dnf provides '*/pear/DB.php' -> no matches), so issabel-pear-DB ships it.
+Requires:       issabel-pear-DB
 
 %undefine __brp_mangle_shebangs
 %define debug_package %{nil}
