@@ -166,14 +166,22 @@ class AGI_AsteriskManager {
     function send_request($action, $parameters=array(), $retry=true) {
         $reconnects = $this->reconnects;
 
+        // AMI is a line based protocol: a CR or LF inside a value would let
+        // whoever controls it append arbitrary actions (for example an
+        // Originate) to this request. Strip them from every name and value.
+        $line = function($str) {
+            return str_replace(array("\r", "\n"), '', (string)$str);
+        };
+        $action = $line($action);
         $req = "Action: $action\r\n";
         foreach($parameters as $var=>$val) {
+            $var = $line($var);
             if (is_array($val)) {
                 foreach($val as $k => $v) {
-                    $req .= "$var: $k=$v\r\n";
+                    $req .= "$var: ".$line($k)."=".$line($v)."\r\n";
                 }
             } else {
-                $req .= "$var: $val\r\n";
+                $req .= "$var: ".$line($val)."\r\n";
             }
 
         }
