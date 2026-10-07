@@ -1342,7 +1342,7 @@ function voicemail_get_settings($vmconf, $action, $extension="") {
     }
     return $settings;
 }
-function voicemail_update_usage($vmail_root,$vmail_info, $context="", $extension="", $args) {
+function voicemail_update_usage($vmail_root,$vmail_info, $context, $extension, $args) {
     $take_action = false;
 
     if (isset($args["del_msgs"]) && $args["del_msgs"] == "true") {

@@ -766,7 +766,7 @@ function paging_del($xtn) {
     needreload();
 }
 
-function paging_add($xtn, $plist, $force_page, $duplex, $description='', $default_group) {
+function paging_add($xtn, $plist, $force_page, $duplex, $description, $default_group) {
     global $db;
 
     // $plist contains a string of extensions, with \n as a seperator. 
