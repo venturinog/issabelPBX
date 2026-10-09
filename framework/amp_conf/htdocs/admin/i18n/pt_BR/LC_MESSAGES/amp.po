@@ -17,6 +17,14 @@
 # Copyright 2009, Marcelo Araujo, Flavio Eduardo Gonçalves
 
 
+msgid ""
+msgstr ""
+"Project-Id-Version: IssabelPBX - Brazilian Portuguese translation\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+
 msgid " (toggle sort)"
 msgstr "(modificar ordem)"
 

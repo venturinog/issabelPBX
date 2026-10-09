@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        2
+Release:        3
 Summary:        issabelPBX
 
 License:        GPL
@@ -71,7 +71,9 @@ do
 POFILE=${A}
 MOFILE=${POFILE%.po}.mo
 PODIR=${A%$POFILE}
-sudo -u asterisk msgfmt $POFILE -o $MOFILE || :
+if ! sudo -u asterisk msgfmt $POFILE -o $MOFILE; then
+    echo "WARNING: msgfmt failed for $POFILE (catalog not compiled)" >&2
+fi
 done
 
 chmod 644 /etc/logrotate.d/issabelpbx.logrotate
@@ -83,6 +85,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Fri Oct 09 2026 Issabel Foundation <info@issabel.org> - 2.13.0-3
+- Add the missing gettext header (charset=UTF-8) to four .po catalogs
+  (asternicivr en_US/es_ES, backup pt_BR, admin amp pt_BR) so msgfmt compiles
+  them instead of failing with "input file doesn't contain a header entry with
+  a charset specification".
 * Fri Oct 09 2026 Issabel Foundation <info@issabel.org> - 2.13.0-2
 - Require the unversioned PHP packages (php-*, 8.3 on EL10) instead of the
   versioned php8.4-*, which conflict with the PHP 8.3 in the netinstall base.

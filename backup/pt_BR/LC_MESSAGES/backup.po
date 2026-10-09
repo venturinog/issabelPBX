@@ -16,6 +16,14 @@
 #  Copyright 2023 Issabel Foundation
 #
 
+msgid ""
+msgstr ""
+"Project-Id-Version: IssabelPBX - Brazilian Portuguese translation\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: pt_BR\n"
+
 msgid "Backup & Restore"
 msgstr "Cópias de segurança"
 

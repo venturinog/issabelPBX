@@ -436,7 +436,7 @@ function set_base_version() {
 
 function compile_gettext() {
     outn("Compiling gettext language files");
-    system('find /var/www/html/admin -name "*.po" -exec sh -c \'POFILE="$1"; MOFILE="${POFILE%.po}.mo"; sudo -u asterisk msgfmt "$POFILE" -o "$MOFILE" || :\' sh {} \;');
+    system('find /var/www/html/admin -name "*.po" -exec sh -c \'POFILE="$1"; MOFILE="${POFILE%.po}.mo"; if ! sudo -u asterisk msgfmt "$POFILE" -o "$MOFILE"; then echo "WARNING: msgfmt failed for $POFILE (catalog not compiled)" >&2; fi\' sh {} \;');
     out("..OK");
 }
 
