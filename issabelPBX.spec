@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        0
+Release:        2
 Summary:        issabelPBX
 
 License:        GPL
@@ -8,9 +8,9 @@ URL:            www.issabel.org
 Source0:        issabelPBX-2.13.0.tar.gz
 BuildArch:      noarch
 
-BuildRequires:  bash php php-cli
+BuildRequires:  bash php-cli
 Requires(pre):  asterisk
-Requires:       php php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
+Requires:       php-cli php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
 Requires:       gettext
 # issabelpbx_db extends the PEAR DB class (issabelpbx_DB.php:3), and
 # db_connect.php requires DB.php on every admin page via bootstrap.php.
@@ -83,3 +83,6 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Fri Oct 09 2026 Issabel Foundation <info@issabel.org> - 2.13.0-2
+- Require the unversioned PHP packages (php-*, 8.3 on EL10) instead of the
+  versioned php8.4-*, which conflict with the PHP 8.3 in the netinstall base.
