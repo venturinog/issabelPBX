@@ -220,6 +220,21 @@ if ($restrict_mods_local !== true) {
             }
         }
     }
+
+    // The core module is mandatory (core/module.xml declares candisable and
+    // canuninstall as "no") and provides functions such as core_devices_list()
+    // that other modules call while generating their configuration. If for any
+    // reason it is missing from the active module list (stale module cache,
+    // version mismatch, incomplete upgrade, ...) its functions would never be
+    // loaded and retrieve_conf would abort with "Call to undefined function
+    // core_devices_list()". Make sure they are always available.
+    if (!function_exists('core_devices_list')) {
+        $core_functions = $modpath . 'core/functions.inc.php';
+        if (is_file($core_functions)) {
+            require_once($core_functions);
+        }
+    }
+
     bootstrap_include_hooks('post_module_load', 'all_mods');
     $bootstrap_settings['function_modules_included'] = true;
 }

@@ -359,7 +359,12 @@ function module_getinfo($module = false, $status = false, $forceload = false) {
         // in subsequent calls
         //
         $modulelist =& modulelist::create($db);
-        if ($forceload) {
+        // A stale or incomplete cached module list can leave out the mandatory
+        // 'core' module. When that happens the module is reported as BROKEN (or
+        // missing) and its functions.inc.php is never loaded, so modules such as
+        // callforward die with "Call to undefined function core_devices_list()".
+        // Force a rebuild in that case.
+        if ($forceload || !is_array($modulelist->module_array) || !isset($modulelist->module_array['core'])) {
             $modulelist->invalidate();
         }
         if (!$modulelist->is_loaded()) {
