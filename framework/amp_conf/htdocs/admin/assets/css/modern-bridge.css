@@ -111,6 +111,15 @@ code, pre {
 .button.is-link { background: transparent; color: var(--pbx-ink); }
 .button.is-link:hover { background: var(--iss-primary-soft); color: var(--pbx-ink-hover); }
 .button.is-light { background: var(--pbx-surface-2); color: var(--pbx-text); border-color: var(--pbx-border); }
+/* Default: superficie sutil (no blanco puro) con texto legible */
+.button { background-color: var(--pbx-surface-2); border-color: var(--pbx-border); color: var(--pbx-text); }
+.button:hover { background-color: var(--pbx-surface); color: var(--pbx-text); border-color: var(--pbx-border); }
+/* Variantes de color: SIEMPRE texto blanco (legible) */
+.button.is-primary, .button.is-primary:hover { background-color: var(--iss-primary) !important; border-color: var(--iss-primary) !important; color: #fff !important; }
+.button.is-danger, .button.is-danger:hover { background-color: #d63939 !important; border-color: #d63939 !important; color: #fff !important; }
+.button.is-success, .button.is-success:hover { background-color: #2fb344 !important; border-color: #2fb344 !important; color: #fff !important; }
+.button.is-info, .button.is-info:hover { background-color: #206bc4 !important; border-color: #206bc4 !important; color: #fff !important; }
+.button.is-warning, .button.is-warning:hover { color: #1a1a1a !important; }
 .button:focus, .input:focus, .select select:focus, .textarea:focus { box-shadow: 0 0 0 2px var(--iss-primary-soft); }
 
 /* ------------------------------ Enlaces ------------------------------ */

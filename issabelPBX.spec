@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        6
+Release:        7
 Summary:        issabelPBX
 
 License:        GPL
@@ -85,6 +85,10 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-7
+- Bridge: give Bulma buttons a subtle default surface and force white text on the
+  primary/danger/success/info variants (readable in light and dark).
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-6
 - Modern bridge: brand the FreePBX chrome (Bulma navbar is-dark -> Issabel purple)
   and add a dark shim over mainstyle.css so surfaces and text stay readable in dark.
