@@ -29,6 +29,14 @@ $html .= '<title>'
 		. (isset($title) ? __($title) : $amp_conf['BRAND_TITLE'])
 		. '</title>';
 
+// Issabel 6 "modern" theme bridge (D12). When the framework theme is present,
+// issabelPBX adopts the Issabel brand and follows its light/dark mode. The
+// preference lives in localStorage under the same origin as the framework GUI.
+$iss_modern_bridge = is_dir('/var/www/html/themes/modern');
+if ($iss_modern_bridge) {
+	$html .= '<script>(function(){function a(m){try{document.documentElement.setAttribute("data-theme",(m==="auto")?(window.matchMedia("(prefers-color-scheme: dark)").matches?"dark":"light"):m);}catch(e){}}var k="issabel-theme";a(localStorage.getItem(k)||"auto");window.addEventListener("storage",function(e){if(e.key===k)a(e.newValue||"auto");});window.addEventListener("message",function(e){if(e.data&&e.data.type==="iss-theme")a(e.data.theme);});})();</script>';
+}
+
 $html .= '<meta http-equiv="Content-Type" content="text/html;charset=utf-8">'
         . '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
 		. '<meta name="robots" content="noindex" />'
@@ -49,6 +57,11 @@ $mainstyle_css      = $amp_conf['BRAND_CSS_ALT_MAINSTYLE']
 $framework_css = ($amp_conf['DISABLE_CSS_AUTOGEN'] || !file_exists($amp_conf['mainstyle_css_generated'])) ? $mainstyle_css : $amp_conf['mainstyle_css_generated'];
 $css_ver = '.' . filectime($framework_css);
 $html .= '<link href="' . $framework_css.$version_tag.$css_ver . '" rel="stylesheet" type="text/css">';
+
+// Issabel 6 "modern" theme bridge (must load AFTER Bulma + mainstyle)
+if ($iss_modern_bridge) {
+	$html .= '<link href="assets/css/modern-bridge.css" rel="stylesheet" type="text/css"/>';
+}
 
 $html.= '
 <link rel="preconnect" href="https://fonts.googleapis.com">

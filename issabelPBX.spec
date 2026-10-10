@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        3
+Release:        4
 Summary:        issabelPBX
 
 License:        GPL
@@ -85,6 +85,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-4
+- Add the "Modern" theme bridge (modern-bridge.css + header.php detection): when
+  the issabel-framework "modern" theme is installed, the PBX admin adopts the
+  Issabel brand and follows the framework light/dark mode (localStorage/postMessage).
+
 * Fri Oct 09 2026 Issabel Foundation <info@issabel.org> - 2.13.0-3
 - Add the missing gettext header (charset=UTF-8) to four .po catalogs
   (asternicivr en_US/es_ES, backup pt_BR, admin amp pt_BR) so msgfmt compiles

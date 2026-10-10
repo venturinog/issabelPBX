@@ -1,0 +1,156 @@
+/* =========================================================================
+   modern-bridge.css — Puente de marca Issabel 6 para issabelPBX (Bulma 0.9.4)
+   Se carga SOLO si el tema "modern" del framework está presente (ver header.php).
+   Recupera la estética Issabel (morado #522b76 / magenta #f94399) y el modo
+   oscuro sobre el admin de FreePBX, sin reescribir sus módulos.
+   Bulma 0.9 no expone variables de runtime (--bulma-* es 1.x): se hace por
+   override de clases, incluidos los colores fijos (#fff/#f5f5f5) que Bulma usa
+   en .tabs.is-boxed, code, .tag, cabecera/hover de tablas, etc.
+   ========================================================================= */
+
+:root {
+  --iss-primary: #522b76;
+  --iss-primary-hover: #643590;
+  --iss-accent: #f94399;
+  --iss-primary-soft: rgba(82, 43, 118, 0.10);
+
+  --pbx-surface: #ffffff;
+  --pbx-surface-2: #f7f8fa;
+  --pbx-border: #dbdee4;
+  --pbx-text: #22303e;
+  --pbx-text-muted: #6b7686;
+  --pbx-body-bg: #eef1f5;
+  --pbx-navbar: #522b76;
+  --pbx-navbar-fg: #f1eaf7;
+  --pbx-navbar-hover: rgba(255, 255, 255, 0.10);
+  --pbx-row-hover: #f1ecf7;
+  --pbx-ink: var(--iss-primary);
+  --pbx-ink-hover: var(--iss-primary-hover);
+}
+
+[data-theme="dark"] {
+  --pbx-surface: #1b2430;
+  --pbx-surface-2: #161d29;
+  --pbx-border: #2a3444;
+  --pbx-text: #e6e9ee;
+  --pbx-text-muted: #93a0af;
+  --pbx-body-bg: #10151f;
+  --pbx-navbar: #3d1f57;
+  --pbx-navbar-fg: #efe7f6;
+  --pbx-navbar-hover: rgba(255, 255, 255, 0.14);
+  --pbx-row-hover: #232f3f;
+  --iss-primary-soft: rgba(200, 166, 236, 0.16);
+  --pbx-ink: #c8a6ec;
+  --pbx-ink-hover: #dcc4f5;
+}
+
+html, body { font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
+body { background: var(--pbx-body-bg); color: var(--pbx-text); color-scheme: light; }
+[data-theme="dark"] body { color-scheme: dark; }
+
+/* ------------------------------ Navbar ------------------------------- */
+.navbar { background: var(--pbx-navbar); color: var(--pbx-navbar-fg); }
+.navbar .navbar-item, .navbar .navbar-link { color: var(--pbx-navbar-fg); background: transparent; }
+.navbar .navbar-item:hover, .navbar .navbar-item.is-active, .navbar .navbar-link:hover {
+  background: var(--pbx-navbar-hover); color: #fff;
+}
+.navbar-brand .navbar-item strong { color: #fff; }
+
+/* ------------------------------ Menú --------------------------------- */
+.menu { background: var(--pbx-surface); }
+.menu-list a { color: var(--pbx-text); }
+.menu-list a:hover { background: var(--pbx-surface-2); color: var(--pbx-text); }
+.menu-list a.is-active { background: var(--iss-primary-soft); color: var(--pbx-ink); }
+
+/* ---------------------------- Superficies ---------------------------- */
+.box, .card, .panel {
+  background: var(--pbx-surface);
+  color: var(--pbx-text);
+  border: 1px solid var(--pbx-border);
+}
+.panel-heading, .panel-block, .card-header, .card-footer { background: var(--pbx-surface-2); color: var(--pbx-text); border-color: var(--pbx-border); }
+.title, .subtitle, .card-header-title { color: var(--pbx-text); }
+.title a { color: var(--pbx-ink); }
+
+/* ------------------------------- Tabs -------------------------------- */
+.tabs ul { border-bottom-color: var(--pbx-border); }
+.tabs a { color: var(--pbx-text-muted); border-bottom-color: transparent; }
+.tabs li.is-active a { color: var(--pbx-ink); border-bottom-color: var(--pbx-ink); }
+.tabs li a:hover { color: var(--pbx-text); }
+.tabs.is-boxed a { border-color: transparent; }
+.tabs.is-boxed a:hover { background-color: var(--pbx-surface-2); border-bottom-color: var(--pbx-border); }
+.tabs.is-boxed li.is-active a { background-color: var(--pbx-surface); border-color: var(--pbx-border); }
+
+/* ------------------------------ Tablas ------------------------------- */
+.table { background-color: var(--pbx-surface); color: var(--pbx-text); }
+.table td, .table th { border-color: var(--pbx-border); }
+.table td { color: var(--pbx-text); }
+.table th { color: var(--pbx-text); }
+.table thead td, .table thead th { color: var(--pbx-text-muted); }
+.table thead th { background-color: var(--pbx-surface-2); }
+.table tfoot td, .table tfoot th { color: var(--pbx-text-muted); }
+.table.is-striped tbody tr:not(.is-selected):nth-child(2n) { background-color: var(--pbx-surface-2); }
+.table.is-hoverable tbody tr:not(.is-selected):hover,
+.table.is-hoverable.is-striped tbody tr:not(.is-selected):hover,
+.table.is-hoverable.is-striped tbody tr:not(.is-selected):hover:nth-child(2n) {
+  background-color: var(--pbx-row-hover);
+}
+strong { color: inherit; }
+
+/* code/pre (Bulma: background-color:#f5f5f5) */
+code, pre {
+  background-color: var(--pbx-surface-2);
+  color: var(--pbx-ink);
+  border: 1px solid var(--pbx-border);
+  border-radius: 4px;
+}
+
+/* ------------------------------ Botones ------------------------------ */
+.button.is-primary { background: var(--iss-primary); border-color: var(--iss-primary); color: #fff; }
+.button.is-primary:hover { background: var(--iss-primary-hover); border-color: var(--iss-primary-hover); }
+.button.is-link { background: transparent; color: var(--pbx-ink); }
+.button.is-link:hover { background: var(--iss-primary-soft); color: var(--pbx-ink-hover); }
+.button.is-light { background: var(--pbx-surface-2); color: var(--pbx-text); border-color: var(--pbx-border); }
+.button:focus, .input:focus, .select select:focus, .textarea:focus { box-shadow: 0 0 0 2px var(--iss-primary-soft); }
+
+/* ------------------------------ Enlaces ------------------------------ */
+a { color: var(--pbx-ink); }
+a:hover { color: var(--pbx-ink-hover); }
+.table a, .title a { color: var(--pbx-ink); }
+
+/* ---------------------------- Formularios ---------------------------- */
+.label { color: var(--pbx-text); }
+.help { color: var(--pbx-text-muted); }
+.input, .textarea, .select select {
+  background-color: var(--pbx-surface);
+  border-color: var(--pbx-border);
+  color: var(--pbx-text);
+}
+.input::placeholder, .textarea::placeholder { color: var(--pbx-text-muted); }
+.input:focus, .textarea:focus, .select select:focus,
+.select:not(.is-multiple):not(.is-loading)::after { border-color: var(--pbx-ink); }
+.checkbox:hover, .radio:hover { color: var(--pbx-ink); }
+.select select option { background: var(--pbx-surface); color: var(--pbx-text); }
+
+/* ------------------------------- Tags -------------------------------- */
+.tag:not(body) { background-color: var(--pbx-surface-2); color: var(--pbx-text); }
+.tag.is-primary { background: var(--iss-primary); color: #fff; }
+.tag.is-success { background: #2fb344; color: #fff; }
+.tag.is-danger { background: #d63939; color: #fff; }
+.tag.is-warning { background: #f59f00; color: #1a1a1a; }
+.tag.is-info { background: #206bc4; color: #fff; }
+
+/* -------------------------- Otros componentes ------------------------ */
+.notification { background-color: var(--pbx-surface-2); color: var(--pbx-text); }
+.message-body { border-color: var(--pbx-border); color: var(--pbx-text); }
+.dropdown-content { background-color: var(--pbx-surface); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.28); }
+.dropdown-item { color: var(--pbx-text); }
+.dropdown-item:hover { background-color: var(--pbx-surface-2); }
+.modal-card-head, .modal-card-foot, .modal-card-body { background-color: var(--pbx-surface); color: var(--pbx-text); }
+.modal-background { background-color: rgba(0, 0, 0, 0.7); }
+[data-theme="dark"] .modal-background { background-color: rgba(0, 0, 0, 0.75); }
+.pagination-link, .pagination-next, .pagination-previous { background-color: var(--pbx-surface-2); border-color: var(--pbx-border); color: var(--pbx-text); }
+.pagination-link.is-current { background-color: var(--iss-primary); border-color: var(--iss-primary); color: #fff; }
+hr { background-color: var(--pbx-border); }
+.breadcrumb a { color: var(--pbx-text-muted); }
+.breadcrumb li.is-active a { color: var(--pbx-text); }
