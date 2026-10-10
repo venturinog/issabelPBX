@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        5
+Release:        6
 Summary:        issabelPBX
 
 License:        GPL
@@ -85,6 +85,10 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-6
+- Modern bridge: brand the FreePBX chrome (Bulma navbar is-dark -> Issabel purple)
+  and add a dark shim over mainstyle.css so surfaces and text stay readable in dark.
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-5
 - Make the PBX admin work offline: vendor Font Awesome 4.7.0, Inter/Noto Sans
   fonts and jQuery UI 1.8.9 locally, and drop the external CDNs (maxcdn,

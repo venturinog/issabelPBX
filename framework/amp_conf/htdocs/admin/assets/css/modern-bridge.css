@@ -154,3 +154,73 @@ a:hover { color: var(--pbx-ink-hover); }
 hr { background-color: var(--pbx-border); }
 .breadcrumb a { color: var(--pbx-text-muted); }
 .breadcrumb li.is-active a { color: var(--pbx-text); }
+
+/* =========================================================================
+   Chrome de FreePBX (mainstyle.css) — marca + dark shim
+   Bulma no cubre los IDs/clases propios de mainstyle.css, que usa colores
+   fijos (#fff, #eee, #000…) → se pisan acá. El <nav> es Bulma "is-dark".
+   ========================================================================= */
+
+/* Navbar: Bulma .navbar.is-dark es gris → forzar la marca Issabel */
+.navbar.is-dark, .navbar.has-shadow { background-color: var(--pbx-navbar) !important; }
+.navbar .navbar-item, .navbar .navbar-link,
+.navbar .navbar-brand .navbar-item, .navbar .navbar-link.is-arrowless { color: var(--pbx-navbar-fg); background-color: transparent; }
+.navbar .navbar-item:hover, .navbar .navbar-item.is-active, .navbar .navbar-link:hover { background-color: var(--pbx-navbar-hover) !important; color: #fff; }
+.navbar-burger { color: var(--pbx-navbar-fg); }
+.navbar-dropdown { background-color: var(--pbx-surface) !important; border-top-color: var(--pbx-navbar) !important; }
+.navbar-dropdown .navbar-item { color: var(--pbx-text) !important; }
+.navbar-dropdown .navbar-item:hover { background-color: var(--pbx-surface-2) !important; }
+.navbar-brand img { filter: none; }
+#button_reload { background-color: var(--iss-accent) !important; border-color: var(--iss-accent) !important; color: #fff !important; }
+
+/* Estructura de la página */
+#page, #page_body { background-color: var(--pbx-body-bg) !important; color: var(--pbx-text); }
+#header { background-color: var(--pbx-navbar); }
+#footer, #footer_content, #footer_text { background-color: var(--pbx-surface) !important; color: var(--pbx-text-muted) !important; border-color: var(--pbx-border) !important; }
+#footer a, #footer_content a { color: var(--pbx-text-muted); }
+
+/* Menú/tabs internos de los módulos */
+#modulelist, #modulelist ul, #modulelist li { background-color: transparent; color: var(--pbx-text); }
+#modulelist ul.tabbernav { background-color: transparent; border-color: var(--pbx-border); }
+#modulelist ul.tabbernav li a { color: var(--pbx-text-muted); background-color: transparent; }
+#modulelist ul.tabbernav li.tabberactive a { color: var(--pbx-ink); background-color: var(--pbx-surface); border-color: var(--pbx-border); }
+#modulelist div.moduleinfopane { background-color: var(--pbx-surface) !important; border-color: var(--pbx-border); color: var(--pbx-text); }
+#modulelist .modulebuttons .button, #modulelist .button { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border) !important; }
+#modulelist #modulelist-header, #modulelist .moduleheader { color: var(--pbx-text); }
+#modulelist .alert { background-color: var(--pbx-surface-2); border-color: var(--pbx-border); color: var(--pbx-text); }
+
+/* Barra lateral derecha */
+.rnav { background-color: var(--pbx-surface) !important; color: var(--pbx-text); border-color: var(--pbx-border); }
+.rnav ul, .rnav li { background-color: transparent; }
+.rnav a { color: var(--pbx-text); }
+.rnav a:hover { color: var(--pbx-ink-hover); }
+
+/* Tablas (mainstyle + clases crema) */
+#page_body table, .content table, table.table { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; }
+#page_body th, #page_body td, .content th, .content td { border-color: var(--pbx-border) !important; color: var(--pbx-text); }
+.alt_table tr:nth-child(even) { background-color: var(--pbx-surface-2) !important; }
+.alt_table tr:nth-child(odd) { background-color: var(--pbx-surface) !important; }
+th { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text-muted) !important; }
+tr:hover > td { background-color: var(--pbx-row-hover); }
+
+/* Formularios */
+#page_body input[type=text], #page_body input[type=password], #page_body input[type=email],
+#page_body input[type=number], #page_body input[type=search], #page_body select, #page_body textarea {
+  background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border) !important;
+}
+#page_body label, .content label { color: var(--pbx-text); }
+#page_body input::placeholder, #page_body textarea::placeholder { color: var(--pbx-text-muted); }
+
+/* Avisos / infos */
+.attention, .warning, #message-old, .infohelp { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border); }
+
+/* Diálogos jQuery UI (mainstyle fija colores) */
+.ui-widget-header { background-color: var(--iss-primary) !important; color: #fff !important; }
+.ui-widget-content { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border) !important; }
+
+/* Dark: pisar los #fff !important de mainstyle */
+[data-theme="dark"] #page, [data-theme="dark"] #page_body, [data-theme="dark"] .content { background-color: var(--pbx-body-bg) !important; }
+[data-theme="dark"] .box, [data-theme="dark"] .card, [data-theme="dark"] .panel,
+[data-theme="dark"] .content .box { background-color: var(--pbx-surface) !important; color: var(--pbx-text); }
+[data-theme="dark"] tr, [data-theme="dark"] tr:nth-child(even) { background-color: transparent; }
+[data-theme="dark"] .alt_table tr:nth-child(even) { background-color: var(--pbx-surface-2) !important; }
