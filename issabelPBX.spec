@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        4
+Release:        5
 Summary:        issabelPBX
 
 License:        GPL
@@ -85,6 +85,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-5
+- Make the PBX admin work offline: vendor Font Awesome 4.7.0, Inter/Noto Sans
+  fonts and jQuery UI 1.8.9 locally, and drop the external CDNs (maxcdn,
+  googleapis, Google Fonts) from header.php/issabelpbx.php.
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-4
 - Add the "Modern" theme bridge (modern-bridge.css + header.php detection): when
   the issabel-framework "modern" theme is installed, the PBX admin adopts the

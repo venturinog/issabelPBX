@@ -9,8 +9,7 @@
 
 
 ?>
-<script src="//ajax.googleapis.com/ajax/libs/jqueryui/1.8.9/jquery-ui.min.js"></script>
-<script  >window.jQuery.ui || document.write('<script src="assets/js/jquery-ui-1.8.x.min.js"><\/script>')</script>
+<script src="assets/js/jquery-ui-1.8.9.min.js"></script>
 <?php
 if (isset($amp_conf['DEVEL']) && $amp_conf['DEVEL']) {
 	$benchmark_time = number_format(microtime_float() - $benchmark_starttime, 4);

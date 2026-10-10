@@ -48,7 +48,7 @@ $html .= '<link rel="stylesheet" href="assets/css/bulma-tooltip.min.css">';
 $html .= '<link rel="stylesheet" href="assets/css/bulma-checkbox.css">';
 $html .= '<link rel="stylesheet" href="assets/css/bulma-switch.min.css">';
 $html .= '<link rel="stylesheet" href="assets/css/animate.min.css">';
-$html .= '<link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet"/>';
+$html .= '<link href="assets/css/font-awesome.min.css" rel="stylesheet" type="text/css"/>';
 
 //css
 $mainstyle_css      = $amp_conf['BRAND_CSS_ALT_MAINSTYLE'] 
@@ -63,11 +63,7 @@ if ($iss_modern_bridge) {
 	$html .= '<link href="assets/css/modern-bridge.css" rel="stylesheet" type="text/css"/>';
 }
 
-$html.= '
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Sans&display=swap" rel="stylesheet">
-';
+$html .= '<link href="assets/css/fonts.css" rel="stylesheet" type="text/css"/>';
 
 $html .= '<link href="assets/css/chosen.css" rel="stylesheet" type="text/css"/>';
 
@@ -90,13 +86,8 @@ if ($amp_conf['BRAND_CSS_CUSTOM']) {
 $html .= '<script src="assets/js/sweetalert2.min.js"></script>';
 $html .= '<link rel="stylesheet" href="assets/css/sweetalert2.min.css" type="text/css"/>';
 
-//it seems extremely difficult to put jquery in the footer with the other scripts
-if ($amp_conf['USE_GOOGLE_CDN_JS']) {
-	$html .= '<script src="//ajax.googleapis.com/ajax/libs/jquery/' . $amp_conf['JQUERY_VER'] . '/jquery.min.js"></script>';
-	$html .= '<script>window.jQuery || document.write(\'<script src="assets/js/jquery-' . $amp_conf['JQUERY_VER'] . '.min.js"><\/script>\')</script>';
-} else {
-	$html .= '<script src="assets/js/jquery-' . $amp_conf['JQUERY_VER'] . '.min.js"></script>';
-}
+// Issabel 6: jQuery local (offline). No external CDN.
+$html .= '<script src="assets/js/jquery-' . $amp_conf['JQUERY_VER'] . '.min.js"></script>';
 		
 $html .= '<script src="assets/js/chosen.jquery.js"></script>';
 $html .= '<script src="assets/js/unpoly.min.js"></script>';
