@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        7
+Release:        8
 Summary:        issabelPBX
 
 License:        GPL
@@ -85,6 +85,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-8
+- Allow .woff2 (and .otf) in admin/.htaccess: webfonts were returning 403, so
+  Inter and Font Awesome failed to load. Harden the dark shim over mainstyle.css
+  (h5/.h5, .ui-dialog, .table.is-borderless, dashboard widgets, links).
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-7
 - Bridge: give Bulma buttons a subtle default surface and force white text on the
   primary/danger/success/info variants (readable in light and dark).

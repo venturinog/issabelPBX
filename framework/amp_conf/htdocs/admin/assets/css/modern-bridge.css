@@ -233,3 +233,26 @@ tr:hover > td { background-color: var(--pbx-row-hover); }
 [data-theme="dark"] .content .box { background-color: var(--pbx-surface) !important; color: var(--pbx-text); }
 [data-theme="dark"] tr, [data-theme="dark"] tr:nth-child(even) { background-color: transparent; }
 [data-theme="dark"] .alt_table tr:nth-child(even) { background-color: var(--pbx-surface-2) !important; }
+
+/* ---- Hardening: más blancos/grises forzados de mainstyle.css ---- */
+h5, .h5 { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; border-bottom-color: var(--pbx-border) !important; }
+.ui-dialog { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; }
+#modulelist div.moduleinfopane { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border) !important; }
+
+/* Tablas sin borde del dashboard (System Statistics) */
+.table.is-borderless, .table.is-borderless thead, .table.is-borderless tbody,
+.table.is-borderless tr, .table.is-borderless th, .table.is-borderless td {
+  background-color: transparent !important;
+  color: var(--pbx-text) !important;
+  border-color: var(--pbx-border) !important;
+}
+
+/* Widgets del dashboard (Notices/Statistics) */
+.syslog_text, .syslog_detail { color: var(--pbx-text) !important; }
+.notification_buttons a, .notify_ignore_btn { color: var(--pbx-text-muted) !important; }
+.box, .card { background-color: var(--pbx-surface) !important; }
+tr.alt, .alt_table-alt { background-color: var(--pbx-surface-2) !important; }
+
+/* Enlaces del contenido legibles en ambos modos */
+#page_body a, .content a { color: var(--pbx-ink); }
+#page_body a:hover, .content a:hover { color: var(--pbx-ink-hover); }
