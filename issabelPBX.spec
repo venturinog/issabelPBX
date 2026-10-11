@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        8
+Release:        9
 Summary:        issabelPBX
 
 License:        GPL
@@ -45,7 +45,8 @@ PODIR=/usr/src/issabelPBX
 killall -q -0 asterisk
 if [ $? -eq 0 ]; then
 echo "asterisk is up and running"
-killall -q -0 mysqld
+# EL10 runs MariaDB as mariadbd (no mysqld); accept either process name.
+killall -q -0 mysqld || killall -q -0 mariadbd
 if [ $? -eq 0 ]; then
 echo "mariadb is up and running"
 echo "perform installation"
@@ -85,6 +86,13 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-9
+- %post: detect MariaDB via mariadbd (EL10 no longer runs mysqld), so install_amp
+  no longer skips and refreshes /var/www/html/admin. Drop the speculative
+  dark-shim "hardening" that chased a deployment artifact.
+- Modern bridge: give the navbar a min-height and accent the brand icon; style
+  the dashboard System Statistics (.infobox/.databox bars) for both themes.
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-8
 - Allow .woff2 (and .otf) in admin/.htaccess: webfonts were returning 403, so
   Inter and Font Awesome failed to load. Harden the dark shim over mainstyle.css
