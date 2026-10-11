@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        9
+Release:        10
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,16 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-10
+- Modern bridge: make FreePBX core forms readable in both themes. Fix page
+  headings (mainstyle gray), the collapsible section h5 background, the native
+  .componentSelect, and the action-bar buttons (Submit/Reset/Delete/Back) with
+  the brand palette. Paint the active module dropdown item with a soft brand
+  wash instead of mainstyle's #4b0884.
+- Modern bridge: theme the Chosen widgets (control, drop panel and the blue
+  #428bca highlight), the right drawer (#rnavadd, current item, open tab) and
+  the native form color-scheme. Use the official brand purple (#572364).
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-9
 - %post: detect MariaDB via mariadbd (EL10 no longer runs mysqld), so install_amp
   no longer skips and refreshes /var/www/html/admin. Drop the speculative

@@ -1,7 +1,7 @@
 /* =========================================================================
    modern-bridge.css — Puente de marca Issabel 6 para issabelPBX (Bulma 0.9.4)
    Se carga SOLO si el tema "modern" del framework está presente (ver header.php).
-   Recupera la estética Issabel (morado #522b76 / magenta #f94399) y el modo
+   Recupera la estética Issabel (morado #572364 / magenta #f94399) y el modo
    oscuro sobre el admin de FreePBX, sin reescribir sus módulos.
    Bulma 0.9 no expone variables de runtime (--bulma-* es 1.x): se hace por
    override de clases, incluidos los colores fijos (#fff/#f5f5f5) que Bulma usa
@@ -9,10 +9,10 @@
    ========================================================================= */
 
 :root {
-  --iss-primary: #522b76;
-  --iss-primary-hover: #643590;
+  --iss-primary: #572364;
+  --iss-primary-hover: #6f2d80;
   --iss-accent: #f94399;
-  --iss-primary-soft: rgba(82, 43, 118, 0.10);
+  --iss-primary-soft: rgba(87, 35, 100, 0.10);
 
   --pbx-surface: #ffffff;
   --pbx-surface-2: #f7f8fa;
@@ -20,7 +20,7 @@
   --pbx-text: #22303e;
   --pbx-text-muted: #6b7686;
   --pbx-body-bg: #eef1f5;
-  --pbx-navbar: #522b76;
+  --pbx-navbar: #572364;
   --pbx-navbar-fg: #f1eaf7;
   --pbx-navbar-hover: rgba(255, 255, 255, 0.10);
   --pbx-row-hover: #f1ecf7;
@@ -35,7 +35,7 @@
   --pbx-text: #e6e9ee;
   --pbx-text-muted: #93a0af;
   --pbx-body-bg: #10151f;
-  --pbx-navbar: #3d1f57;
+  --pbx-navbar: #3f1a49;
   --pbx-navbar-fg: #efe7f6;
   --pbx-navbar-hover: rgba(255, 255, 255, 0.14);
   --pbx-row-hover: #232f3f;
@@ -175,11 +175,23 @@ hr { background-color: var(--pbx-border); }
 .navbar.is-dark, .navbar.has-shadow { background-color: var(--pbx-navbar) !important; }
 .navbar .navbar-item, .navbar .navbar-link,
 .navbar .navbar-brand .navbar-item, .navbar .navbar-link.is-arrowless { color: var(--pbx-navbar-fg); background-color: transparent; }
-.navbar .navbar-item:hover, .navbar .navbar-item.is-active, .navbar .navbar-link:hover { background-color: var(--pbx-navbar-hover) !important; color: #fff; }
+.navbar .navbar-item:hover, .navbar .navbar-item:focus, .navbar .navbar-item.is-active,
+.navbar .navbar-link:hover, .navbar .navbar-link:focus { background-color: var(--pbx-navbar-hover) !important; color: #fff; }
 .navbar-burger { color: var(--pbx-navbar-fg); }
 .navbar-dropdown { background-color: var(--pbx-surface) !important; border-top-color: var(--pbx-navbar) !important; }
 .navbar-dropdown .navbar-item { color: var(--pbx-text) !important; }
-.navbar-dropdown .navbar-item:hover { background-color: var(--pbx-surface-2) !important; }
+.navbar-dropdown .navbar-item:hover, .navbar-dropdown .navbar-item:focus { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; }
+/* Ítem del módulo activo: mainstyle usa #4b0884 !important con especificidad
+ * (0,5,1). Se empata con el mismo selector (el bridge carga después) y se pinta
+ * con lavanda de marca + tinta + acento magenta, legible en ambos temas. */
+.navbar.is-dark .navbar-dropdown a.navbar-item.is-active {
+  background-color: var(--iss-primary-soft) !important;
+  color: var(--pbx-ink) !important;
+  font-weight: 600;
+  box-shadow: inset 2px 0 0 var(--iss-accent);
+}
+.navbar.is-dark .navbar-dropdown a.navbar-item.is-active:hover,
+.navbar.is-dark .navbar-dropdown a.navbar-item.is-active:focus { color: var(--pbx-ink-hover) !important; }
 .navbar-brand img { filter: none; }
 #button_reload { background-color: var(--iss-accent) !important; border-color: var(--iss-accent) !important; color: #fff !important; }
 
@@ -248,3 +260,145 @@ tr:hover > td { background-color: var(--pbx-row-hover); }
 .databox .graphok { background: #2fb344 !important; }
 .databox .graphwarn { background: #f59f00 !important; }
 .databox .grapherr { background: #d63939 !important; }
+
+/* =========================================================================
+   Formularios y páginas de FreePBX (core) — legibilidad en ambos temas
+   mainstyle.css fija colores (gray / #eee / #666) y Bulma deja los controles
+   nativos sin estilar. Se corrige por selector específico (no global).
+   ========================================================================= */
+
+/* 1. Títulos de página (mainstyle: h1..h6 { color:gray } / h2 { color:#666 }) */
+#page_body h1, #page_body h2, #page_body h3,
+#page_body h4, #page_body h5, #page_body h6 { color: var(--pbx-text) !important; }
+div.content > h2, div.content > div > h2, .table > tbody > tr > td > h2 { color: var(--pbx-text) !important; }
+
+/* 2. Cabecera de sección colapsable (mainstyle h5 { background-color:#eee }) */
+.guielToggle td h5, #page_body table tr h5 {
+  font-size: 1.05em;
+  font-weight: 600;
+  background-color: var(--pbx-surface-2) !important;
+  border-bottom: 1px solid var(--pbx-border) !important;
+  box-shadow: none !important;
+  color: var(--pbx-text) !important;
+}
+.guielToggleBut { color: var(--pbx-text-muted); }
+
+/* 3. Selects nativos de los componentes (gui_selectbox → .componentSelect) */
+.componentSelect {
+  background-color: var(--pbx-surface) !important;
+  color: var(--pbx-text) !important;
+  border: 1px solid var(--pbx-border) !important;
+  border-radius: 6px;
+  padding: .35rem .6rem;
+}
+.componentSelect option { background-color: var(--pbx-surface); color: var(--pbx-text); }
+
+/* 4. Barra de acción inferior (ipbx_* helpers): Submit/Reset/Delete/Back.
+ * Llegan como .button.is-rounded.is-light.is-small.is-link → Bulma los pinta
+ * con azul de link; se repintan con la marca por id. */
+#action-bar { background-color: var(--pbx-surface-2) !important; border-top: 1px solid var(--pbx-border); }
+#mainformsubmit {
+  background-color: var(--iss-primary) !important;
+  border-color: var(--iss-primary) !important;
+  color: #fff !important;
+}
+#mainformsubmit:hover { background-color: var(--iss-primary-hover) !important; border-color: var(--iss-primary-hover) !important; }
+#mainformdelete {
+  background-color: #d63939 !important;
+  border-color: #d63939 !important;
+  color: #fff !important;
+}
+#mainformreset, input[name="hback"] {
+  background-color: transparent !important;
+  border-color: var(--pbx-border) !important;
+  color: var(--pbx-ink) !important;
+}
+#mainformreset:hover, input[name="hback"]:hover {
+  background-color: var(--iss-primary-soft) !important;
+  color: var(--pbx-ink-hover) !important;
+}
+
+/* 5. Chevron de colapsar la barra de acción */
+.action_menu_icon, #collapseactionmenuicon { color: var(--pbx-text-muted); }
+.action_menu_icon:hover, #collapseactionmenuicon:hover { color: var(--pbx-ink); }
+
+/* =========================================================================
+   Chosen (jQuery Chosen) — FreePBX convierte los <select> en este widget, que
+   dibuja su propio markup: por eso estilar el <select> no alcanza.
+   chosen.css usa blanco + azul #428bca; se redeniza con los tokens.
+   ========================================================================= */
+.chosen-container .chosen-single {
+  background: var(--pbx-surface) !important;
+  background-image: none !important;
+  border: 1px solid var(--pbx-border) !important;
+  color: var(--pbx-text) !important;
+  box-shadow: none !important;
+}
+.chosen-container .chosen-single span { color: var(--pbx-text) !important; }
+/* La flecha la pinta mainstyle con un triángulo de texto (#666) */
+.chosen-container .chosen-single div b:before { color: var(--pbx-text-muted) !important; }
+.chosen-container-active .chosen-single,
+.chosen-container-active.chosen-with-drop .chosen-single {
+  background: var(--pbx-surface) !important;
+  border-color: var(--pbx-ink) !important;
+  box-shadow: 0 0 0 3px var(--iss-primary-soft) !important;
+}
+.chosen-container .chosen-drop {
+  background: var(--pbx-surface) !important;
+  border-color: var(--pbx-border) !important;
+  box-shadow: 0 8px 20px rgba(16, 24, 40, .18) !important;
+}
+.chosen-container .chosen-results { color: var(--pbx-text) !important; }
+.chosen-container .chosen-results li { color: var(--pbx-text) !important; }
+.chosen-container .chosen-results li.highlighted,
+.chosen-container .chosen-results li.result-selected {
+  background-color: var(--iss-primary-soft) !important;
+  color: var(--pbx-ink) !important;
+}
+.chosen-container .chosen-results li.group-result { color: var(--pbx-text-muted) !important; }
+.chosen-container .chosen-results li em,
+.chosen-container .chosen-results li.highlighted em { background: transparent !important; }
+.chosen-container .chosen-search input {
+  background: var(--pbx-surface) !important;
+  border-color: var(--pbx-border) !important;
+  color: var(--pbx-text) !important;
+  box-shadow: none !important;
+}
+.chosen-container-multi .chosen-choices {
+  background: var(--pbx-surface) !important;
+  border-color: var(--pbx-border) !important;
+  box-shadow: none !important;
+}
+.chosen-container-multi .chosen-choices .search-field input { color: var(--pbx-text) !important; }
+.chosen-container-multi .chosen-choices .search-choice {
+  background: var(--pbx-surface-2) !important;
+  border-color: var(--pbx-border) !important;
+  color: var(--pbx-text) !important;
+}
+
+/* =========================================================================
+   Cajón lateral derecho (#rnav) y su solapa de apertura
+   ========================================================================= */
+/* "Add" (drawListMenu) llega como .button.is-link → Bulma lo pinta azul */
+#rnavadd {
+  background-color: var(--iss-primary) !important;
+  border-color: var(--iss-primary) !important;
+  color: #fff !important;
+}
+#rnavadd:hover { background-color: var(--iss-primary-hover) !important; border-color: var(--iss-primary-hover) !important; }
+/* Ítem activo del listado y hover (mainstyle usa #ccc) */
+.rnav a.current { background-color: var(--iss-primary-soft) !important; color: var(--pbx-ink) !important; font-weight: 600; }
+.rnav a:hover { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; }
+/* Solapa que abre/cierra el cajón (mainstyle: background-color:#111; color:white) */
+.xxxopenbtn {
+  background-color: var(--pbx-surface-2) !important;
+  color: var(--pbx-text) !important;
+  border: 1px solid var(--pbx-border);
+}
+
+/* =========================================================================
+   Formularios nativos no-Chosen: que el popup siga el esquema del tema
+   ========================================================================= */
+select, option, input, textarea { color-scheme: light; }
+[data-theme="dark"] select, [data-theme="dark"] option,
+[data-theme="dark"] input, [data-theme="dark"] textarea { color-scheme: dark; }
