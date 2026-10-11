@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        10
+Release:        11
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sun Oct 11 2026 Issabel Foundation <info@issabel.org> - 2.13.0-11
+- Add cache-busting (load_version + filectime) to the modern-bridge.css and
+  fonts.css links, like mainstyle.css, so browsers pick up the updated files
+  after an upgrade instead of serving a cached copy.
+
 * Sat Oct 10 2026 Issabel Foundation <info@issabel.org> - 2.13.0-10
 - Modern bridge: make FreePBX core forms readable in both themes. Fix page
   headings (mainstyle gray), the collapsible section h5 background, the native

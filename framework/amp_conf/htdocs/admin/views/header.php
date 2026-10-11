@@ -58,12 +58,16 @@ $framework_css = ($amp_conf['DISABLE_CSS_AUTOGEN'] || !file_exists($amp_conf['ma
 $css_ver = '.' . filectime($framework_css);
 $html .= '<link href="' . $framework_css.$version_tag.$css_ver . '" rel="stylesheet" type="text/css">';
 
-// Issabel 6 "modern" theme bridge (must load AFTER Bulma + mainstyle)
+// Issabel 6 "modern" theme bridge (must load AFTER Bulma + mainstyle).
+// Lleva cache-busting (como mainstyle.css): el archivo cambia con cada RPM y,
+// sin cambiar la URL, el navegador seguiría usando la versión vieja.
 if ($iss_modern_bridge) {
-	$html .= '<link href="assets/css/modern-bridge.css" rel="stylesheet" type="text/css"/>';
+	$bridge_css = 'assets/css/modern-bridge.css';
+	$html .= '<link href="' . $bridge_css . $version_tag . '.' . @filectime($bridge_css) . '" rel="stylesheet" type="text/css"/>';
 }
 
-$html .= '<link href="assets/css/fonts.css" rel="stylesheet" type="text/css"/>';
+$fonts_css = 'assets/css/fonts.css';
+$html .= '<link href="' . $fonts_css . $version_tag . '.' . @filectime($fonts_css) . '" rel="stylesheet" type="text/css"/>';
 
 $html .= '<link href="assets/css/chosen.css" rel="stylesheet" type="text/css"/>';
 
