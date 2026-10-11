@@ -49,12 +49,13 @@ body { background: var(--pbx-body-bg); color: var(--pbx-text); color-scheme: lig
 [data-theme="dark"] body { color-scheme: dark; }
 
 /* ------------------------------ Navbar ------------------------------- */
-.navbar { background: var(--pbx-navbar); color: var(--pbx-navbar-fg); }
+.navbar { background: var(--pbx-navbar); color: var(--pbx-navbar-fg); min-height: 52px; }
 .navbar .navbar-item, .navbar .navbar-link { color: var(--pbx-navbar-fg); background: transparent; }
 .navbar .navbar-item:hover, .navbar .navbar-item.is-active, .navbar .navbar-link:hover {
   background: var(--pbx-navbar-hover); color: #fff;
 }
 .navbar-brand .navbar-item strong { color: #fff; }
+.navbar-brand .navbar-item i { color: var(--iss-accent); }
 
 /* ------------------------------ Menú --------------------------------- */
 .menu { background: var(--pbx-surface); }
@@ -234,25 +235,16 @@ tr:hover > td { background-color: var(--pbx-row-hover); }
 [data-theme="dark"] tr, [data-theme="dark"] tr:nth-child(even) { background-color: transparent; }
 [data-theme="dark"] .alt_table tr:nth-child(even) { background-color: var(--pbx-surface-2) !important; }
 
-/* ---- Hardening: más blancos/grises forzados de mainstyle.css ---- */
-h5, .h5 { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; border-bottom-color: var(--pbx-border) !important; }
-.ui-dialog { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; }
-#modulelist div.moduleinfopane { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border) !important; }
-
-/* Tablas sin borde del dashboard (System Statistics) */
-.table.is-borderless, .table.is-borderless thead, .table.is-borderless tbody,
-.table.is-borderless tr, .table.is-borderless th, .table.is-borderless td {
-  background-color: transparent !important;
-  color: var(--pbx-text) !important;
-  border-color: var(--pbx-border) !important;
-}
-
-/* Widgets del dashboard (Notices/Statistics) */
-.syslog_text, .syslog_detail { color: var(--pbx-text) !important; }
-.notification_buttons a, .notify_ignore_btn { color: var(--pbx-text-muted) !important; }
-.box, .card { background-color: var(--pbx-surface) !important; }
-tr.alt, .alt_table-alt { background-color: var(--pbx-surface-2) !important; }
-
-/* Enlaces del contenido legibles en ambos modos */
-#page_body a, .content a { color: var(--pbx-ink); }
-#page_body a:hover, .content a:hover { color: var(--pbx-ink-hover); }
+/* --------------------- Dashboard: System Statistics ------------------ */
+/* El módulo dashboard de issabelPBX pinta #sysstats con .infobox/.databox.
+ * El fondo blanco lo fuerza .ui-widget-content (pisado arriba); acá se ajustan
+ * bordes, texto y las barras para que sigan al tema. */
+.infobox { border-color: var(--pbx-border) !important; }
+.infobox h3, .infobox h4 { color: var(--pbx-text) !important; }
+.databox { border-bottom-color: var(--pbx-border) !important; }
+.databox .dataname { color: var(--pbx-text-muted) !important; }
+.databox .datavalue { color: var(--pbx-text) !important; }
+.databox .bargraph { border-radius: 3px; }
+.databox .graphok { background: #2fb344 !important; }
+.databox .graphwarn { background: #f59f00 !important; }
+.databox .grapherr { background: #d63939 !important; }
