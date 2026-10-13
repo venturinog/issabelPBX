@@ -272,8 +272,11 @@ tr:hover > td { background-color: var(--pbx-row-hover); }
 #page_body h4, #page_body h5, #page_body h6 { color: var(--pbx-text) !important; }
 div.content > h2, div.content > div > h2, .table > tbody > tr > td > h2 { color: var(--pbx-text) !important; }
 
-/* 2. Cabecera de sección colapsable (mainstyle h5 { background-color:#eee }) */
-.guielToggle td h5, #page_body table tr h5 {
+/* 2. Cabecera de sección colapsable (mainstyle h5 { background-color:#eee }).
+ * También los h5 sueltos del contenido (pasos de System Recordings, "Verify",
+ * "Save"): mainstyle les pone banda #eee y borde #d1c3eb, y el texto queda
+ * ilegible en oscuro. */
+.guielToggle td h5, #page_body table tr h5, .content h5 {
   font-size: 1.05em;
   font-weight: 600;
   background-color: var(--pbx-surface-2) !important;
@@ -292,6 +295,21 @@ div.content > h2, div.content > div > h2, .table > tbody > tr > td > h2 { color:
   padding: .35rem .6rem;
 }
 .componentSelect option { background-color: var(--pbx-surface); color: var(--pbx-text); }
+
+/* 3b. Widget de archivos de Bulma (.file): "Choose a file..." en System
+ * Recordings, backup restore y bulkdids. Bulma 0.9 pinta .file-cta
+ * #eee/#363636 y hover #e8e8e8; .file-name comparte ese borde. */
+.file-cta {
+  background-color: var(--pbx-surface-2);
+  color: var(--pbx-text);
+  border-color: var(--pbx-border);
+}
+.file-cta:hover, .file-cta:active { background-color: var(--pbx-surface); color: var(--pbx-text); }
+.file-name {
+  background-color: var(--pbx-surface);
+  color: var(--pbx-text);
+  border-color: var(--pbx-border);
+}
 
 /* 4. Barra de acción inferior (ipbx_* helpers): Submit/Reset/Delete/Back.
  * Llegan como .button.is-rounded.is-light.is-small.is-link → Bulma los pinta

@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        12
+Release:        13
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-13
+- Modern bridge: theme bare content h5 section headers (.content h5), used by
+  the System Recordings step headers, whose mainstyle #eee strip was unreadable
+  in dark mode. Theme the Bulma file upload widget (.file-cta/.file-name), also
+  used by backup restore and bulkdids.
 * Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-12
 - Modern bridge: theme the right drawer tab (#collapsemenuicon.menu_icon,
   created by pbxlib.js at runtime) with theme tokens instead of the fixed
