@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        15
+Release:        16
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,9 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-16
+- Preserve the requested extension ID in PBX tab metadata.
+
 * Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-15
 - Separate PBX list and element tab identities and report localized page metadata.
 
