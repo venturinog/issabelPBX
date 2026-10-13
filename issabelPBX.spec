@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        13
+Release:        15
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,12 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-15
+- Separate PBX list and element tab identities and report localized page metadata.
+
+* Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-14
+- Add the shared PBX tab bridge for page identity and deduplication.
+
 * Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-13
 - Modern bridge: theme bare content h5 section headers (.content h5), used by
   the System Recordings step headers, whose mainstyle #eee strip was unreadable

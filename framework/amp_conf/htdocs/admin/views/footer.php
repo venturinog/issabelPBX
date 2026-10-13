@@ -259,6 +259,48 @@ if (strpos($_SERVER['HTTP_USER_AGENT'], 'MSIE') !== false) {
 	<![endif]-->
 END;
 }
+
+if (!empty($GLOBALS['ISSABEL_TABS_EMBEDDED'])) {
+	$tabsDisplay = isset($display) && is_string($display)
+		? $display : $GLOBALS['ISSABEL_TABS_CURRENT_DISPLAY'];
+	$tabsExtdisplay = isset($extdisplay) && is_string($extdisplay)
+		? $extdisplay : $GLOBALS['ISSABEL_TABS_CURRENT_EXTDISPLAY'];
+	$tabsMenuItem = isset($GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM']) &&
+		is_array($GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM'])
+		? $GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM'] : array();
+	$tabsRawname = isset($tabsMenuItem['module']['rawname'])
+		? $tabsMenuItem['module']['rawname'] : '';
+	if (isset($tabsMenuItem['name'])) {
+		$tabsMenuName = $tabsRawname !== ''
+			? modgettext::_(ucwords($tabsMenuItem['name']), $tabsRawname)
+			: __(ucwords($tabsMenuItem['name']));
+	} else {
+		$tabsMenuName = $tabsDisplay !== '' ? $tabsDisplay : __('PBX Configuration');
+	}
+	$tabsCategory = isset($tabsMenuItem['category'])
+		? __(ucwords($tabsMenuItem['category'])) : __('Applications');
+	$tabsKey = $GLOBALS['ISSABEL_TABS_OBJECT']->normalizeKey($tabsDisplay, $tabsExtdisplay);
+	$tabsElement = ($tabsKey && $tabsKey !== 'pbx|landing' && strpos($tabsKey, '|') !== false)
+		? substr($tabsKey, strpos($tabsKey, '|') + 1) : '';
+	$tabsTitle = $tabsMenuName . ($tabsElement !== '' ? ' · ' . $tabsElement : '');
+	$tabsBreadcrumb = array($tabsCategory, $tabsMenuName);
+	if ($tabsElement !== '') $tabsBreadcrumb[] = $tabsElement;
+	$tabsContext = array(
+		'instanceId' => $GLOBALS['ISSABEL_TABS_INSTANCE'],
+		'tabId' => $GLOBALS['ISSABEL_TABS_CURRENT'],
+		'key' => $tabsKey,
+		'title' => $tabsTitle,
+		'breadcrumb' => $tabsBreadcrumb,
+		'display' => $tabsDisplay,
+		'extdisplay' => $tabsExtdisplay,
+		'tabs' => $GLOBALS['ISSABEL_TABS_DATA'],
+	);
+	$html .= '<script>window.issabelTabsContext='
+		. json_encode($tabsContext, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT)
+		. ';</script>';
+	$html .= '<script src="assets/js/tabs-bridge-pbx.js' . $version_tag . '"></script>';
+}
+
 echo $html;
 ?>
 </body>

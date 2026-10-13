@@ -591,6 +591,9 @@ if ($quietmode) {
                                         $footer);
     $footer['covert'] ? $footer['no_auth']     = true : '';
     $footer['php_missing_module'] = $php_missing_module;
+    if (!empty($GLOBALS['ISSABEL_TABS_EMBEDDED'])) {
+        $GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM'] = $cur_menuitem;
+    }
     echo load_view($amp_conf['VIEW_FOOTER'], $footer);
 }
 ?>
