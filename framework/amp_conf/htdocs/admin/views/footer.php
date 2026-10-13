@@ -261,12 +261,19 @@ END;
 }
 
 if (!empty($GLOBALS['ISSABEL_TABS_EMBEDDED'])) {
-	$tabsDisplay = isset($_REQUEST['display']) && is_string($_REQUEST['display'])
-		? $_REQUEST['display']
-		: (isset($display) && is_string($display) ? $display : $GLOBALS['ISSABEL_TABS_CURRENT_DISPLAY']);
-	$tabsExtdisplay = isset($_REQUEST['extdisplay']) && is_string($_REQUEST['extdisplay'])
-		? $_REQUEST['extdisplay']
-		: (isset($extdisplay) && is_string($extdisplay) ? $extdisplay : $GLOBALS['ISSABEL_TABS_CURRENT_EXTDISPLAY']);
+	$tabsDisplay = isset($display) && is_string($display) && $display !== ''
+		? $display
+		: (isset($_GET['display']) && is_string($_GET['display'])
+			? $_GET['display'] : $GLOBALS['ISSABEL_TABS_CURRENT_DISPLAY']);
+	if (isset($_GET['extdisplay']) && is_string($_GET['extdisplay'])) {
+		$tabsExtdisplay = $_GET['extdisplay'];
+	} elseif (isset($_POST['extdisplay']) && is_string($_POST['extdisplay'])) {
+		$tabsExtdisplay = $_POST['extdisplay'];
+	} elseif (isset($extdisplay) && is_string($extdisplay) && $extdisplay !== '') {
+		$tabsExtdisplay = $extdisplay;
+	} else {
+		$tabsExtdisplay = $GLOBALS['ISSABEL_TABS_CURRENT_EXTDISPLAY'];
+	}
 	$tabsMenuItem = isset($GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM']) &&
 		is_array($GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM'])
 		? $GLOBALS['ISSABEL_TABS_PBX_MENU_ITEM'] : array();

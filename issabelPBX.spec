@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        16
+Release:        17
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,9 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-17
+- Read the requested element ID before FreePBX overwrites request variables.
+
 * Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-16
 - Preserve the requested extension ID in PBX tab metadata.
 
