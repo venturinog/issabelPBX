@@ -124,8 +124,13 @@
 
     window.addEventListener('message', function (event) {
         if (event.origin !== origin || event.source !== window.parent) return;
-        if (!event.data || event.data.type !== 'tabsChanged') return;
-        tabs = Array.isArray(event.data.tabs) ? event.data.tabs : tabs;
+        var message = event.data || {};
+        if (message.type === 'tabsChanged') {
+            tabs = Array.isArray(message.tabs) ? message.tabs : tabs;
+        } else if (message.type === 'themeChanged' &&
+            (message.theme === 'light' || message.theme === 'dark')) {
+            document.documentElement.setAttribute('data-bs-theme', message.theme);
+        }
     });
 
     if (document.readyState === 'loading') {
