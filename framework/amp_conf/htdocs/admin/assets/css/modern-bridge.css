@@ -389,12 +389,14 @@ div.content > h2, div.content > div > h2, .table > tbody > tr > td > h2 { color:
 /* Ítem activo del listado y hover (mainstyle usa #ccc) */
 .rnav a.current { background-color: var(--iss-primary-soft) !important; color: var(--pbx-ink) !important; font-weight: 600; }
 .rnav a:hover { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; }
-/* Solapa que abre/cierra el cajón (mainstyle: background-color:#111; color:white) */
-.xxxopenbtn {
+/* Solapa que abre/cierra el cajón: es #collapsemenuicon.menu_icon, creado por
+ * pbxlib.js en runtime (mainstyle: background-color:#eee; color:#000) */
+.menu_icon, #collapsemenuicon {
   background-color: var(--pbx-surface-2) !important;
-  color: var(--pbx-text) !important;
+  color: var(--pbx-text-muted) !important;
   border: 1px solid var(--pbx-border);
 }
+.menu_icon:hover, #collapsemenuicon:hover { color: var(--pbx-ink) !important; }
 
 /* =========================================================================
    Formularios nativos no-Chosen: que el popup siga el esquema del tema

@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        11
+Release:        12
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Tue Oct 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-12
+- Modern bridge: theme the right drawer tab (#collapsemenuicon.menu_icon,
+  created by pbxlib.js at runtime) with theme tokens instead of the fixed
+  #eee/#000 from mainstyle.css, so it matches the action bar in dark mode.
+  Drop the unused .xxxopenbtn rule.
 * Sun Oct 11 2026 Issabel Foundation <info@issabel.org> - 2.13.0-11
 - Add cache-busting (load_version + filectime) to the modern-bridge.css and
   fonts.css links, like mainstyle.css, so browsers pick up the updated files
