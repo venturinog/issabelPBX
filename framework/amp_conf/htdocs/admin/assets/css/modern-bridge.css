@@ -195,7 +195,8 @@ hr { background-color: var(--pbx-border); }
   background-image: none !important;
   color: var(--pbx-text);
 }
-.navbar-burger { color: var(--pbx-text); }
+.navbar-burger, .navbar.is-dark .navbar-burger { color: var(--pbx-text); }
+.navbar-burger:hover { background-color: var(--pbx-surface-2) !important; }
 .navbar-dropdown { background-color: var(--pbx-surface) !important; border-top-color: var(--pbx-border) !important; }
 .navbar-dropdown .navbar-item { color: var(--pbx-text) !important; }
 .navbar-dropdown .navbar-item:hover, .navbar-dropdown .navbar-item:focus { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; }

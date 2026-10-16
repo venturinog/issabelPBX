@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        19
+Release:        20
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,10 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Fri Oct 16 2026 Issabel Foundation <info@issabel.org> - 2.13.0-20
+- Fix the PBX admin navbar burger color in light mode: Bulma pins it white
+  with .navbar.is-dark .navbar-burger (0,3,0), so match that selector.
+
 * Fri Oct 16 2026 Issabel Foundation <info@issabel.org> - 2.13.0-19
 - Use the theme surface for the PBX admin navbar (including its collapsed
   burger menu) and for section titles, instead of brand purple.
