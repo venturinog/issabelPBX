@@ -20,9 +20,6 @@
   --pbx-text: #22303e;
   --pbx-text-muted: #6b7686;
   --pbx-body-bg: #eef1f5;
-  --pbx-navbar: #572364;
-  --pbx-navbar-fg: #f1eaf7;
-  --pbx-navbar-hover: rgba(255, 255, 255, 0.10);
   --pbx-row-hover: #f1ecf7;
   --pbx-ink: var(--iss-primary);
   --pbx-ink-hover: var(--iss-primary-hover);
@@ -35,9 +32,6 @@
   --pbx-text: #e6e9ee;
   --pbx-text-muted: #93a0af;
   --pbx-body-bg: #10151f;
-  --pbx-navbar: #3f1a49;
-  --pbx-navbar-fg: #efe7f6;
-  --pbx-navbar-hover: rgba(255, 255, 255, 0.14);
   --pbx-row-hover: #232f3f;
   --iss-primary-soft: rgba(200, 166, 236, 0.16);
   --pbx-ink: #c8a6ec;
@@ -49,12 +43,10 @@ body { background: var(--pbx-body-bg); color: var(--pbx-text); color-scheme: lig
 [data-theme="dark"] body { color-scheme: dark; }
 
 /* ------------------------------ Navbar ------------------------------- */
-.navbar { background: var(--pbx-navbar); color: var(--pbx-navbar-fg); min-height: 52px; }
-.navbar .navbar-item, .navbar .navbar-link { color: var(--pbx-navbar-fg); background: transparent; }
-.navbar .navbar-item:hover, .navbar .navbar-item.is-active, .navbar .navbar-link:hover {
-  background: var(--pbx-navbar-hover); color: #fff;
-}
-.navbar-brand .navbar-item strong { color: #fff; }
+/* Barra y menú colapsado usan la superficie del tema (igual que .iss-topbar
+ * del framework) en vez del morado de marca. El detalle de especificidad frente
+ * a Bulma/mainstyle vive más abajo, en "Chrome de FreePBX". */
+.navbar { background: var(--pbx-surface); color: var(--pbx-text); border-bottom: 1px solid var(--pbx-border); min-height: 52px; }
 .navbar-brand .navbar-item i { color: var(--iss-accent); }
 
 /* ------------------------------ Menú --------------------------------- */
@@ -171,14 +163,40 @@ hr { background-color: var(--pbx-border); }
    fijos (#fff, #eee, #000…) → se pisan acá. El <nav> es Bulma "is-dark".
    ========================================================================= */
 
-/* Navbar: Bulma .navbar.is-dark es gris → forzar la marca Issabel */
-.navbar.is-dark, .navbar.has-shadow { background-color: var(--pbx-navbar) !important; }
+/* Navbar: Bulma .navbar.is-dark pinta el texto #fff con especificidad (0,4,x)
+ * y mainstyle usa #562d7b / #4b0884 !important. Se empata la especificidad y
+ * se repinta con la superficie del tema para que siga claro/oscuro. */
+.navbar.is-dark, .navbar.has-shadow {
+  background-color: var(--pbx-surface) !important;
+  box-shadow: 0 2px 0 0 var(--pbx-border);
+}
 .navbar .navbar-item, .navbar .navbar-link,
-.navbar .navbar-brand .navbar-item, .navbar .navbar-link.is-arrowless { color: var(--pbx-navbar-fg); background-color: transparent; }
+.navbar.is-dark .navbar-brand > .navbar-item, .navbar.is-dark .navbar-brand .navbar-link,
+.navbar.is-dark .navbar-start > .navbar-item, .navbar.is-dark .navbar-start .navbar-link,
+.navbar.is-dark .navbar-end  > .navbar-item, .navbar.is-dark .navbar-end  .navbar-link {
+  color: var(--pbx-text);
+  background-color: transparent;
+}
+.navbar.is-dark .navbar-brand .navbar-link::after,
+.navbar.is-dark .navbar-start .navbar-link::after,
+.navbar.is-dark .navbar-end  .navbar-link::after { border-color: var(--pbx-text-muted); }
 .navbar .navbar-item:hover, .navbar .navbar-item:focus, .navbar .navbar-item.is-active,
-.navbar .navbar-link:hover, .navbar .navbar-link:focus { background-color: var(--pbx-navbar-hover) !important; color: #fff; }
-.navbar-burger { color: var(--pbx-navbar-fg); }
-.navbar-dropdown { background-color: var(--pbx-surface) !important; border-top-color: var(--pbx-navbar) !important; }
+.navbar .navbar-link:hover, .navbar .navbar-link:focus,
+.navbar.is-dark .navbar-item.has-dropdown:hover .navbar-link,
+.navbar.is-dark .navbar-item.has-dropdown:focus .navbar-link,
+.navbar.is-dark .navbar-item.has-dropdown.is-active .navbar-link {
+  background-color: var(--pbx-surface-2) !important;
+  color: var(--pbx-text) !important;
+}
+/* Menú colapsado (Bulma ≤1023px): su fondo base es #fff y hereda el texto claro
+ * de .navbar.is-dark, que en oscuro quedaría ilegible. */
+.navbar-menu {
+  background-color: var(--pbx-surface) !important;
+  background-image: none !important;
+  color: var(--pbx-text);
+}
+.navbar-burger { color: var(--pbx-text); }
+.navbar-dropdown { background-color: var(--pbx-surface) !important; border-top-color: var(--pbx-border) !important; }
 .navbar-dropdown .navbar-item { color: var(--pbx-text) !important; }
 .navbar-dropdown .navbar-item:hover, .navbar-dropdown .navbar-item:focus { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; }
 /* Ítem del módulo activo: mainstyle usa #4b0884 !important con especificidad
@@ -197,7 +215,7 @@ hr { background-color: var(--pbx-border); }
 
 /* Estructura de la página */
 #page, #page_body { background-color: var(--pbx-body-bg) !important; color: var(--pbx-text); }
-#header { background-color: var(--pbx-navbar); }
+#header { background-color: var(--pbx-surface); }
 #footer, #footer_content, #footer_text { background-color: var(--pbx-surface) !important; color: var(--pbx-text-muted) !important; border-color: var(--pbx-border) !important; }
 #footer a, #footer_content a { color: var(--pbx-text-muted); }
 
@@ -236,8 +254,15 @@ tr:hover > td { background-color: var(--pbx-row-hover); }
 /* Avisos / infos */
 .attention, .warning, #message-old, .infohelp { background-color: var(--pbx-surface-2) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border); }
 
-/* Diálogos jQuery UI (mainstyle fija colores) */
-.ui-widget-header { background-color: var(--iss-primary) !important; color: #fff !important; }
+/* Diálogos jQuery UI y títulos de sección de los módulos legacy. mainstyle fija
+ * #562d7b y el tema jQuery UI "smoothness" deja un background-image gris (de
+ * ahí el degradé morado); el shorthand lo resetea. Se pinta con la superficie
+ * de sección del tema, igual que .panel-heading, en claro y oscuro. */
+.ui-widget-header {
+  background: var(--pbx-surface-2) !important;
+  color: var(--pbx-text) !important;
+  border-color: var(--pbx-border) !important;
+}
 .ui-widget-content { background-color: var(--pbx-surface) !important; color: var(--pbx-text) !important; border-color: var(--pbx-border) !important; }
 
 /* Dark: pisar los #fff !important de mainstyle */
