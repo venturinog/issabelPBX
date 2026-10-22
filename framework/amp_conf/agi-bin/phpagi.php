@@ -64,6 +64,7 @@
   * @example examples/input.php Get text input from the user and say it back
   * @example examples/ping.php Ping an IP address
   */
+  #[AllowDynamicProperties]
   class AGI
   {
    /**

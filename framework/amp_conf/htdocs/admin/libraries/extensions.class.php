@@ -1,5 +1,6 @@
 <?php
 
+#[AllowDynamicProperties]
 class extensions {
     /** The config
      * array(section=>array(extension=>array( array('basetag'=>basetag,'tag'=>tag,'addpri'=>addpri,'cmd'=>cmd) )))
@@ -435,6 +436,7 @@ class extensions {
     }
 }
 
+#[AllowDynamicProperties]
 class extension { 
     var $data;
     
@@ -891,6 +893,7 @@ class ext_playback extends extension {
     }
 }
 
+#[AllowDynamicProperties]
 class ext_queue {
     var $var;
     var $value;

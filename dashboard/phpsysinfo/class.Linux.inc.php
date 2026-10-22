@@ -22,6 +22,7 @@ if (!defined('IN_PHPSYSINFO')) {
 
 require_once(APP_ROOT . '/class.BSD.common.inc.php');
 
+#[AllowDynamicProperties]
 class sysinfo {
   var $inifile = "distros.ini";
   var $icon = "unknown.png";

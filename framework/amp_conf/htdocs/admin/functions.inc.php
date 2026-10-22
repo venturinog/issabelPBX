@@ -68,6 +68,7 @@ if (!function_exists('get_instance')) {
     function &get_instance(){$def = new ci_def(); return $def;}
 }
 if (!class_exists('ci_def')) {
+    #[AllowDynamicProperties]
     class ci_def {function __construct(){$this->lang = new ci_lan_def(); $this->config = new ci_config(); $this->uri = new ci_uri_string();}}
 }
 if (!class_exists('ci_lan_def')) {
@@ -136,6 +137,7 @@ function ipbx_framework_autoloader($class) {
                     function get_instance(){return new ci_def();}
                 }
                 if (!class_exists('ci_def')) {
+                    #[AllowDynamicProperties]
                     class ci_def {function __construct(){
                         $this->lang = new ci_lan_def();}}
                 }

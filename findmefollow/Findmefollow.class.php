@@ -3,6 +3,10 @@
 
 class Findmefollow implements BMO {
 
+	// Objetos inyectados por el constructor (BMO)
+	public $IssabelPBX;
+	public $db;
+
 	public function __construct($issabelpbx = null) {
 		if ($issabelpbx == null) {
 			throw new Exception("Not given a IssabelPBX Object");

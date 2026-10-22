@@ -6,6 +6,9 @@ use \UCP\Modules as Modules;
 class Findmefollow extends Modules{
 	protected $module = 'Findmefollow';
 
+	// Objeto Modules inyectado por el constructor de UCP
+	public $Modules;
+
 	function __construct($Modules) {
 		$this->Modules = $Modules;
 	}

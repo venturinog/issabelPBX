@@ -27,6 +27,7 @@ if (!defined('IN_PHPSYSINFO')) {
 
 require_once(APP_ROOT . '/class.BSD.common.inc.php');
 
+#[AllowDynamicProperties]
 class sysinfo extends bsd_common {
   var $cpu_regexp   = "";
   var $scsi_regexp1 = "";

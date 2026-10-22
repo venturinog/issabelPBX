@@ -27,6 +27,7 @@ if (!defined('IN_PHPSYSINFO')) {
 
 require_once(APP_ROOT . '/class.parseProgs.inc.php');
 
+#[AllowDynamicProperties]
 class bsd_common {
   var $dmesg; 
   var $parser;

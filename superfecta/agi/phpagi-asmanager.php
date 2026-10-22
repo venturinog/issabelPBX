@@ -16,6 +16,7 @@ if(!class_exists('AGI'))
  * @example examples/sip_show_peer.php Get information about a sip peer
  * @package phpAGI
  */
+#[AllowDynamicProperties]
 class AGI_AsteriskManager {
     /**
      * Config variables

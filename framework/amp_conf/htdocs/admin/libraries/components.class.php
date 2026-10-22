@@ -521,6 +521,7 @@ class component {
     }
 }
 
+#[AllowDynamicProperties]
 class guielement {
     var $_elemname;
     var $_html;
