@@ -453,17 +453,30 @@ if ($amp_conf['CEL_ENABLED'] && !isset($_POST['need_html']) && $action == 'cel_s
 
 echo '<a id="CDR"></a>';
 
-list ($startfull,$endfull) = preg_split("/ - /",$_POST['dates']);
-list ($startdate, $starttime) = preg_split("/ /",$startfull);
-list ($enddate, $endtime) = preg_split("/ /",$endfull);
-list ($startyear, $startmonth, $startday) = preg_split("/-/",$startdate);
-list ($starthour, $startmin) = preg_split("/:/",$starttime);
-list ($endyear, $endmonth, $endday) = preg_split("/-/",$enddate);
-list ($endhour, $endmin) = preg_split("/:/",$endtime);
-
-$start_timestamp = mktime( $starthour, $startmin, 59, $startmonth, $startday, $startyear );
+// El rango de fechas llega del formulario como texto libre, con el formato
+// "YYYY-MM-DD HH:MM:SS - YYYY-MM-DD HH:MM:SS". En PHP 7.4 un valor ausente o
+// mal formado solo producia avisos, y mktime() se comia los strings como 0;
+// en PHP 8, mktime() con un string lanza TypeError y la pagina se caia
+// simplemente al abrirla. Se parsea con un patron y, si no hay rango valido,
+// se consulta el dia en curso.
+$dates = isset($_POST['dates']) ? trim($_POST['dates']) : '';
+if (preg_match('/^(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2})(?::(\d{1,2}))? *- *(\d{4})-(\d{1,2})-(\d{1,2}) (\d{1,2}):(\d{1,2})(?::(\d{1,2}))?$/', $dates, $m)) {
+    $startyear = $m[1]; $startmonth = $m[2]; $startday = $m[3];
+    $starthour = $m[4]; $startmin = $m[5];
+    $endyear = $m[7]; $endmonth = $m[8]; $endday = $m[9];
+    $endhour = $m[10]; $endmin = $m[11];
+    $start_timestamp = mktime((int)$starthour, (int)$startmin, 59, (int)$startmonth, (int)$startday, (int)$startyear);
+    $end_timestamp   = mktime((int)$endhour, (int)$endmin, 59, (int)$endmonth, (int)$endday, (int)$endyear);
+} else {
+    $startyear = $endyear = date('Y');
+    $startmonth = $endmonth = date('n');
+    $startday = $endday = date('j');
+    $starthour = '0'; $startmin = '0';
+    $endhour = '23'; $endmin = '59';
+    $start_timestamp = mktime(0, 0, 59, (int)$startmonth, (int)$startday, (int)$startyear);
+    $end_timestamp   = mktime(23, 59, 59, (int)$endmonth, (int)$endday, (int)$endyear);
+}
 $startdate = "'$startyear-$startmonth-$startday $starthour:$startmin:00'";
-$end_timestamp = mktime( $endhour, $endmin, 59, $endmonth, $endday, $endyear );
 $enddate = "'$endyear-$endmonth-$endday $endhour:$endmin:59'";
 
 #
@@ -618,13 +631,26 @@ foreach ($mod_vars as $key => $val) {
 	}
 }
 
-if ( isset($_POST['disposition_neg']) && $_POST['disposition_neg'] == 'true' ) {
-	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition != '$_POST[disposition]'";
-} else {
-	$disposition = (empty($_POST['disposition']) || $_POST['disposition'] == 'all') ? NULL : "AND disposition = '$_POST[disposition]'";
+// La disposicion sale de una lista cerrada del formulario: se valida contra
+// ella en lugar de interpolar el POST. Las duraciones son numeros y se
+// castean. Antes el $_POST iba sin escapar dentro de las comillas del SQL y
+// el guard de duracion miraba dur_min con isset y dur_max con is_blank, con
+// lo que un dur_min vacio producia "duration BETWEEN '' AND '60'".
+$dispositions = array('ANSWERED', 'BUSY', 'FAILED', 'NO ANSWER');
+$disposition_sel = isset($_POST['disposition']) ? $_POST['disposition'] : '';
+$disposition = NULL;
+if ($disposition_sel !== '' && $disposition_sel != 'all' && in_array($disposition_sel, $dispositions, true)) {
+    $disposition = (isset($_POST['disposition_neg']) && $_POST['disposition_neg'] == 'true')
+        ? "AND disposition != '$disposition_sel'"
+        : "AND disposition = '$disposition_sel'";
 }
 
-$duration = (!isset($_POST['dur_min']) || is_blank($_POST['dur_max'])) ? NULL : "AND duration BETWEEN '$_POST[dur_min]' AND '$_POST[dur_max]'";
+$dur_min = isset($_POST['dur_min']) ? trim($_POST['dur_min']) : '';
+$dur_max = isset($_POST['dur_max']) ? trim($_POST['dur_max']) : '';
+$duration = NULL;
+if (!is_blank($dur_min) && !is_blank($dur_max) && is_numeric($dur_min) && is_numeric($dur_max)) {
+    $duration = "AND duration BETWEEN " . (int)$dur_min . " AND " . (int)$dur_max;
+}
 // $_POST['order'], ['sort'] and ['limit'] are interpolated unquoted into the
 // query below, so restrict each to the values the form can actually produce.
 $order_cols = array('calldate','cnum','cnam','outbound_cnum','did','dst',
