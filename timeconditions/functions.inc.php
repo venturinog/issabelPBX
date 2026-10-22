@@ -741,7 +741,7 @@ function timeconditions_timegroups_configpageload() {
 
         $countries=array();
         if(($fp = fopen("countries.csv","r",TRUE)) !== FALSE) {
-            while (($data = fgetcsv($fp, 1000, ",")) !== FALSE) {
+            while (($data = fgetcsv($fp, 1000, ',', escape: '')) !== FALSE) {
                 if($data[0]=='Name') { continue; }
                 $iso = $curlang.".".strtolower($data[1]);
                 $countries[]=array('value'=>$iso,'text'=>$data[0]);
@@ -1648,7 +1648,7 @@ function fill_holidays($timegroup,$country) {
     $mes[12]='dec';
 
     if(($fp = fopen("countries.csv","r",TRUE)) !== FALSE) {
-        while (($data = fgetcsv($fp, 1000, ",")) !== FALSE) {
+        while (($data = fgetcsv($fp, 1000, ',', escape: '')) !== FALSE) {
             if($data[0]=='Name') { continue; }
             if($isocountry==strtolower($data[1])) {
                 $countryname = strtolower($data[0]);

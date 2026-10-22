@@ -51,7 +51,7 @@ if(!empty($header) && !empty($csvdata)) {
     $outstream = fopen("php://output",'w'); //Set PHP output to stream
 
     foreach ($final_data as $fields) {
-        fputcsv($outstream, $fields); //Stream each line out
+        fputcsv($outstream, $fields, escape: ''); //Stream each line out
     }
 
     fclose($outstream); //Close stream

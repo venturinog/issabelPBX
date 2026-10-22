@@ -29,7 +29,7 @@ if (isset($_FILES['pattern_file']) && $_FILES['pattern_file']['tmp_name'] != '')
 
     // Check first row, ingoring empty rows and get indices setup
     //
-    while (($row = fgetcsv($fh, 5000, ",", "\"")) !== false) {
+    while (($row = fgetcsv($fh, 5000, ",", "\"", escape: '')) !== false) {
       if (count($row) == 1 && $row[0] == '') {
         continue;
       } else {
@@ -60,7 +60,7 @@ if (isset($_FILES['pattern_file']) && $_FILES['pattern_file']['tmp_name'] != '')
       }
     }
     $row_count = count($index);
-    while (($row = fgetcsv($fh, 5000, ",", "\"")) !== false) {
+    while (($row = fgetcsv($fh, 5000, ",", "\"", escape: '')) !== false) {
       if (count($row) == $row_count) {
         $csv_file[] = $row;
       }
