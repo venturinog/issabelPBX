@@ -1,0 +1,67 @@
+# Modulos de issabelPBX que el checker de PHP 8 exige limpios.
+#
+# Lista de los 57 modulos que install_amp instala por defecto
+# (framework/install_amp:477) mas `fax`, que se distribuye en Issabel 6
+# aunque no se instale por defecto (ver AGENTS.md 1.2).
+#
+# Los modulos que NO estan aqui se reportan, pero no bloquean: su
+# incompatibilidad con PHP 8 esta documentada en PHP8todo.md 14.0 y se
+# abordara en su propia ola (bundles de terceros: oauth-php, JSON.php,
+# Net/Growl).
+announcement
+asterisk-cli
+asteriskinfo
+blacklist
+callback
+callforward
+callrecording
+callwaiting
+cdr
+cidlookup
+conferences
+core
+customappsreg
+customcontexts
+dashboard
+daynight
+dialplaninjection
+disa
+donotdisturb
+dynamicfeatures
+dynroute
+extensionsettings
+fax
+featurecodeadmin
+findmefollow
+framework
+hotelwakeup
+iaxsettings
+infoservices
+ivr
+languages
+logfiles
+manager
+managersettings
+miscapps
+miscdests
+music
+outroutemsg
+paging
+parking
+phonebook
+pinsets
+printextensions
+queueprio
+queues
+recordings
+ringgroups
+setcid
+sipsettings
+speeddial
+timeconditions
+trunkbalance
+tts
+vmblast
+voicemail
+weakpasswords
+writequeuelog

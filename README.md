@@ -54,6 +54,25 @@ Installation
 ./install_amp --username <mysql_username> -password <mysql_password> --installdb
 ```
 
+PHP 8 compatibility gate (`tools/`)
+-----------------------------------
+
+The tree is migrated to PHP 8.3/8.4 (see `PHP8todo.md`, section 14, in the
+workspace root). A static quality gate protects the migration:
+
+```sh
+./tools/php8check.sh              # from the module root (or with a path argument)
+```
+
+It lints every PHP file and runs `tools/php8scan.php`, a tokenizer-based
+scanner that reports undefined constants, functions removed from PHP
+(`each`, `mysql_*`, `dl`, `ereg*`, `sqlite_*`, ...), PHP 8.4 deprecations
+(`fgetcsv` without `$escape`, `E_STRICT`) and, as non-blocking warnings,
+dynamic properties and `${var}` interpolation. Findings in modules outside
+the default-install scope (see `tools/php8scope.txt`) are downgraded to
+informational. Exit code is 1 on any ERROR; `packaging/build-rpm.sh`
+refuses to build when it fails.
+
 License
 -------
 
