@@ -278,7 +278,7 @@ function trunkbalance_vercheck() {
 	{
 		//  if either array is empty skip version check
 	}
-	else if ( $module_remote[module][version] > $module_local[module][version])
+	else if ( $module_remote['module']['version'] > $module_local['module']['version'])
 	{
 		$newver = true;
 	}

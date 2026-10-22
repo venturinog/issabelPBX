@@ -170,10 +170,10 @@ array(
 // returns true if a new version is available
 function hotelwakeup_vercheck() {
 	$newver = false;
-	if ( function_exists(hotelwakeup_xml2array)){
+	if ( function_exists('hotelwakeup_xml2array')){
 		$module_local = hotelwakeup_xml2array("modules/hotelwakeup/module.xml");
 		$module_remote = hotelwakeup_xml2array("https://raw.github.com/POSSA/Hotel-Style-Wakeup-Calls/master/module.xml");
-		if ( $module_remote[module][version] > $module_local[module][version])
+		if ( $module_remote['module']['version'] > $module_local['module']['version'])
 			{
 			$newver = true;
 			}

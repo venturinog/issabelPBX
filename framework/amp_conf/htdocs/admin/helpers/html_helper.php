@@ -252,7 +252,15 @@ if ( ! function_exists('doctype'))
 
 		if ( ! is_array($_doctypes))
 		{
-			if ( ! require_once(APPPATH.'config/doctypes.php'))
+			// La constante APPPATH no existe en este arbol (venia de
+			// FreePBX 2.x) y config/doctypes.php tampoco esta. En PHP 7.4
+			// la referencia a APPPATH era un warning y el require fallaba,
+			// con lo que la funcion devolvia FALSE; en PHP 8 una constante
+			// no definida es un Error fatal. Se resuelve la ruta de forma
+			// explicita y se mantiene el FALSE de siempre.
+			$appPath = defined('APPPATH') ? APPPATH : dirname(__DIR__) . '/';
+			$doctypesFile = $appPath . 'config/doctypes.php';
+			if ( ! file_exists($doctypesFile) || ! require_once($doctypesFile))
 			{
 				return FALSE;
 			}

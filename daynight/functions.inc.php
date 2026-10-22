@@ -23,7 +23,7 @@ class dayNightObject {
             $version = $engine_info['version'];
             $this->DEVSTATE = version_compare($version, "1.6", "ge") ? "DEVICE_STATE" : "DEVSTATE";
         } else {
-            $this->DEVSTATE = DEVICE_STATE;
+            $this->DEVSTATE = "DEVICE_STATE";
         }
     }
         

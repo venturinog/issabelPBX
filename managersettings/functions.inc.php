@@ -12,6 +12,13 @@ if (!defined('ISSABELPBX_IS_AUTH')) { die('No direct script access allowed'); }
 /* Field Values for type field */
 define('MANAGER_NORMAL','1');
 define('MANAGER_CUSTOM','9');
+// Tipos de las filas de codecs. Antes se usaban las constantes Manager_CODEC y
+// Manager_VIDEO_CODEC, que no estaban definidas: en PHP 7.4 eso era un warning
+// y el valor acababa siendo la cadena "Manager_CODEC", que MySQL guardaba como 0
+// en el TINYINT de managersettings.type. En PHP 8 una constante no definida es
+// un Error fatal, asi que se declaran aqui con el valor efectivo de siempre.
+define('Manager_CODEC','0');
+define('Manager_VIDEO_CODEC','0');
 
 class managersettings_validate {
   var $errors = array();

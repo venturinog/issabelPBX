@@ -17,6 +17,19 @@
 
 // Copyright 2006 phpSysInfo
 
+// El bundle de phpSysInfo que incluye Issabel 6 esta recortado: no trae el
+// config.inc.php del upstream (que era quien definiia TEMPLATE_SET y
+// BAR_HEIGHT) ni el directorio templates/ con las imagenes de las barras.
+// Las dos funciones de grafico de barras de este fichero no tienen llamantes
+// en Issabel 6, pero en PHP 8 la referencia a esas constantes es un Error
+// fatal, asi que se declaran aqui con los valores por defecto del upstream.
+if (!defined('TEMPLATE_SET')) {
+    define('TEMPLATE_SET', 'default');
+}
+if (!defined('BAR_HEIGHT')) {
+    define('BAR_HEIGHT', 3);
+}
+
 function created_by ()
 {
   global $VERSION;

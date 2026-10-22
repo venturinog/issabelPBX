@@ -51,7 +51,7 @@
 	// extension number.  This next session will extract both sides
     
 	// split the Channel  SIP/11-3ef4  or Zap/4-1 into is components
-	$channel = $agivar[agi_channel];
+	$channel = $agivar['agi_channel'];
 	if (preg_match('.^([a-zA-Z]+)/([0-9]+)([0-9a-zA-Z-]*).', $channel, $match) )
 	{
 		$sta = trim($match[2]);

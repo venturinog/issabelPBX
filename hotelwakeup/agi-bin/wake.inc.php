@@ -19,20 +19,20 @@ if (!@include_once(getenv('ISSABELPBX_CONF') ? getenv('ISSABELPBX_CONF') : '/etc
 	// ------------
 	
 	// If the application is having problems you can log to this file
-	$parm_error_log =  $amp_conf[ASTLOGDIR].'/wakeup.log';   
+	$parm_error_log =  $amp_conf['ASTLOGDIR'].'/wakeup.log';   
 	
 	// Set to 1 to turn on the log file
 	$parm_debug_on = 1;	  //  currently this setting is not set in the module
 	
 	// This is where the Temporary WakeUp Call Files will be created
 	// $parm_temp_dir =  '/var/spool/asterisk/tmp';     // old setting
-	$parm_temp_dir =  $amp_conf[ASTSPOOLDIR].'/tmp';
+	$parm_temp_dir =  $amp_conf['ASTSPOOLDIR'].'/tmp';
 	// Create Temporary WakeUp directory if it doesn't exist, as 0775 (rwxrwxrx), limited by overall umask
 	if (!is_dir ($parm_temp_dir)) mkdir ($parm_temp_dir, 0775);
 	
 	// This is where the WakeUp Call Files will be moved to when finished
 	// $parm_call_dir = '/var/spool/asterisk/outgoing';    //old setting
-	$parm_call_dir = $amp_conf[ASTSPOOLDIR].'/outgoing';
+	$parm_call_dir = $amp_conf['ASTSPOOLDIR'].'/outgoing';
 
 	// How many times to try the call
 	//$parm_maxretries = 3;   // old setting
@@ -48,7 +48,7 @@ if (!@include_once(getenv('ISSABELPBX_CONF') ? getenv('ISSABELPBX_CONF') : '/etc
 
 	// Caller ID of who the wakeup call is from Change this to the extension you want to display on the phone
 	// $parm_wakeupcallerid = '"Wake Up Call" ';   // old setting
-	$parm_wakeupcallerid = $date[cnam]." <".$date[cid].">";
+	$parm_wakeupcallerid = $date['cnam']." <".$date['cid'].">";
 
 	// Set to 1 to use the Channel
 	// Set to 0 for Caller ID,  Caller IS is assumed just a number ### or "Name Name" <##>
@@ -83,10 +83,10 @@ if (!@include_once(getenv('ISSABELPBX_CONF') ? getenv('ISSABELPBX_CONF') : '/etc
 	// Operator Extensions
 	// Enter any extension that is allowed to enter in operator mode - Caller ID is used to validate
 	//	$parm_operator_extensions= array(  00, 00, 00);  // old method
-		if(preg_match('/,/', $date[operator_extensions])) {
-			$poe = explode(',', preg_replace('/ /', '', $date[operator_extensions]));
+		if(preg_match('/,/', $date['operator_extensions'])) {
+			$poe = explode(',', preg_replace('/ /', '', $date['operator_extensions']));
 		} else {
-			$poe = array($date[operator_extensions]);
+			$poe = array($date['operator_extensions']);
 		}
 	$parm_operator_extensions = $poe;
 

@@ -409,7 +409,7 @@ if ($need_update && $action != 'usage') {
         //redirect($url);
     } else {
         $url = "config.php?type=$type&display=$display&action=$action&extdisplay=$extension&updated=false";
-        $_SESSION['msg']=base64_encode(ipbx.msg.framework.invalid_response);
+        $_SESSION['msg']=base64_encode(_dgettext('amp','Invalid response'));
         $_SESSION['msgtype']='error';
         $_SESSION['msgtstamp']=time();
 //        redirect($url);

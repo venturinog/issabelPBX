@@ -137,8 +137,8 @@ if (substr($name,0,4)=='BAL_') //balanced trunk
 				$endmonthnum=$monthnames[$endmonth];
 				$startmonthnum=$monthnames[$startmonth];
 
-				if ((($endmonthnum<$today[mon])&($today[mon]<$startmonthnum)) or
-                          (($endmonthnum>=$startmonthnum)& (($today[mon]<$startmonthnum)or($today[mon]>$endmonthnum))))
+				if ((($endmonthnum<$today['mon'])&($today['mon']<$startmonthnum)) or
+                          (($endmonthnum>=$startmonthnum)& (($today['mon']<$startmonthnum)or($today['mon']>$endmonthnum))))
 				{
 					$AGI->verbose("     month condition '$condmonths' failed", 4);
 					$timecondition=false;
@@ -155,8 +155,8 @@ if (substr($name,0,4)=='BAL_') //balanced trunk
 				$enddate=0;
 			  list($startdate,$enddate)=explode("-",$conddaysmonth);
 			  if ($enddate==0) { $enddate=$startdate;}
-                       if ((($enddate<$today[mday])&($today[mday]<$startdate)) or
-                          (($enddate>=$startdate)& (($today[mday]<$startdate)or($today[mday]>$enddate))))
+                       if ((($enddate<$today['mday'])&($today['mday']<$startdate)) or
+                          (($enddate>=$startdate)& (($today['mday']<$startdate)or($today['mday']>$enddate))))
                        {
                          $AGI->verbose("     day of the month condition '$conddaysmonth' failed", 4);
 			    $timecondition=false;
@@ -176,8 +176,8 @@ if (substr($name,0,4)=='BAL_') //balanced trunk
 			  $enddaynum=$daynames[$endday];
 
 
-			  if ((($enddaynum<$today[wday])&($today[wday]<$startdaynum)) or
-                          (($enddaynum>=$startdaynum)& (($today[wday]<$startdaynum)or($today[wday]>$enddaynum))))
+			  if ((($enddaynum<$today['wday'])&($today['wday']<$startdaynum)) or
+                          (($enddaynum>=$startdaynum)& (($today['wday']<$startdaynum)or($today['wday']>$enddaynum))))
                        {
                          $AGI->verbose("     day of the week condition '$conddaysweek' failed", 4);
 			    $timecondition=false;
@@ -192,7 +192,7 @@ if (substr($name,0,4)=='BAL_') //balanced trunk
 			{
 			  $starttime='';
 			  $endtime='';
-			  $todaysminutes=$today[hours]*60+$today[minutes];
+			  $todaysminutes=$today['hours']*60+$today['minutes'];
 			  list($starttime,$endtime)=explode("-",$condtimerange);
 			  if ($endtime=='') {$endtime=$starttime;}
 			  list($thou,$tmin)=explode(":",$starttime);
