@@ -420,7 +420,7 @@ function issabelpbx_error_handler($errno, $errstr, $errfile, $errline,  $errcont
                 E_USER_ERROR                    => 'USER_ERROR',
                 E_USER_WARNING                  => 'USER_WARNING',
                 E_USER_NOTICE                   => 'USER_NOTICE',
-                E_STRICT                                => 'RUNTIM_NOTICE',
+                2048 /* E_STRICT, deprecada en PHP 8.4 */ => 'RUNTIM_NOTICE',
                 E_RECOVERABLE_ERROR     => 'CATCHABLE_FATAL_ERROR',
                 );
 

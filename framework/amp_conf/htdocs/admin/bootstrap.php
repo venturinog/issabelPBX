@@ -33,7 +33,7 @@
 // we should never re-run this file, something is wrong if we do.
 //
 //enable error reporting and start benchmarking
-error_reporting(E_ALL & ~E_STRICT); 
+error_reporting(E_ALL); 
 require_once(dirname(__FILE__) . '/libraries/gettextinc.php');
 date_default_timezone_set(@date_default_timezone_get());
 function microtime_float() { list($usec,$sec) = explode(' ',microtime()); return ((float)$usec+(float)$sec); } 
@@ -77,7 +77,7 @@ $bootstrap_settings['framework_functions_included'] = true;
 if ($bootstrap_settings['issabelpbx_error_handler']) {
   $error_handler = $bootstrap_settings['issabelpbx_error_handler'] === true ? 'issabelpbx_error_handler' : $bootstrap_settings['issabelpbx_error_handler'];
   if (function_exists($error_handler)) {
-    set_error_handler($error_handler, E_ALL & ~E_STRICT);
+    set_error_handler($error_handler, E_ALL);
   }
 }
 
