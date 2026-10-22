@@ -193,8 +193,8 @@ class sysinfo extends bsd_common {
     $lines = explode("\n", $s);
 
     $i = 0;
-    while (list(, $line) = each($lines)) {
-      ereg('(.*) \((.*)\)', $line, $a);
+    foreach ($lines as $line) {
+      preg_match('/(.*) \((.*)\)/', $line, $a);
 
       $m = explode(' ', $a[0]);
       $fsdev[$m[0]] = $a[2];

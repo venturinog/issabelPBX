@@ -120,7 +120,14 @@ function get_opt($noopt = array()) {
 	$result = array();
 	$params = $GLOBALS['argv'];
 
-	while (list($tmp, $p) = each($params)) {
+	// each() se elimino en PHP 8.0 y este bucle dependia de su cursor:
+	// 'current()' miraba el elemento siguiente y el segundo 'each()' lo
+	// consumia (para la opcion '-o valor'). Se replica con una posicion
+	// explicita, que es rigurosamente equivalente sobre un array de argv.
+	$i = 0;
+	$count = count($params);
+	while ($i < $count) {
+		$p = $params[$i++];
 		if ($p[0] == '-') {
 			$pname = substr($p, 1);
 			$value = true;
@@ -133,9 +140,9 @@ function get_opt($noopt = array()) {
 				}
 			}
 			// check if next parameter is a descriptor or a value
-			$nextparm = current($params);
+			$nextparm = $i < $count ? $params[$i] : false;
 			if (!in_array($pname, $noopt) && $value === true && $nextparm !== false && $nextparm[0] != '-') {
-				list($tmp, $value) = each($params);
+				$value = $params[$i++];
 			}
 			$result[$pname] = $value;
 		} else {
