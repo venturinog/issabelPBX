@@ -1680,9 +1680,9 @@
       global $_ENV;
       $chpath = is_null($checkpath) ? $_ENV['PATH'] : $checkpath;
 
-      foreach(explode(PATH_SEPERATOR, $chpath) as $path)
-        if(!function_exists('is_executable') || is_executable($path . DIRECTORY_SEPERATOR . $cmd))
-          return $path . DIRECTORY_SEPERATOR . $cmd;
+      foreach(explode(PATH_SEPARATOR, $chpath) as $path)
+        if(!function_exists('is_executable') || is_executable($path . DIRECTORY_SEPARATOR . $cmd))
+          return $path . DIRECTORY_SEPARATOR . $cmd;
 
       if(is_null($checkpath))
       {
@@ -1753,9 +1753,8 @@
       $subject = "$basefile/$line/$level: $message";
       $message = "$level: $message in $file on line $line\n\n";
 
-      if(function_exists('mysql_errno') && strpos(' '.strtolower($message), 'mysql'))
-        $message .= 'MySQL error ' . mysql_errno() . ": " . mysql_error() . "\n\n";
-
+      // El diagnostico de errores de MySQL se elimino: ext/mysql desaparecio
+      // en PHP 7.0 y function_exists('mysql_errno') es siempre false.
       // figure out who we are
       if(function_exists('socket_create'))
       {
