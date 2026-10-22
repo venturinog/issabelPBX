@@ -199,7 +199,7 @@ if(!DB::IsError($legacy_settings)) {
           // Now some sanity, if faxemail is blank then it won't work and we treat as disabled
           //
           if (!$legacy_email) {
-            continue;
+            continue 2;
           }
           $destination = '';
 			    $insert_array[] = array($row['extension'], $row['cidnum'], $detection, $detectionwait, $destination, $legacy_email);
@@ -213,7 +213,7 @@ if(!DB::IsError($legacy_settings)) {
               $destination = "from-did-direct,$user,1";
             } else {
 							$non_converts[] = array('extension' => $row['extension'], 'cidnum' => $row['cidnum'], 'device' => $row['faxexten'], 'user' => $user);
-              continue;
+              continue 2;
             }
           }
 			  $insert_array[] = array($row['extension'], $row['cidnum'], $detection, $detectionwait, $destination, $legacy_email);
