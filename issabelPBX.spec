@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        20
+Release:        21
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,11 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Thu Oct 22 2026 Issabel Foundation <info@issabel.org> - 2.13.0-21
+- Ring Groups and VM Blast: fix a PHP 8 TypeError that aborted the add page
+  when no group existed. '' == 0 is false since PHP 8, so the legacy fallback
+  evaluated '' + 1; the suggested number now falls back to 600 (500) again.
+
 * Fri Oct 16 2026 Issabel Foundation <info@issabel.org> - 2.13.0-20
 - Fix the PBX admin navbar burger color in light mode: Bulma pins it white
   with .navbar.is-dark .navbar-burger (0,3,0), so match that selector.

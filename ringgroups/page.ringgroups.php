@@ -212,8 +212,16 @@ if(count($gresult)==0) {
 ?>
                 <input size="5" type="hidden" name="account" value="<?php  echo ltrim($extdisplay,'GRP-'); ?>" tabindex="<?php echo ++$tabindex;?>">
 <?php         } else { ?>
+                <?php
+                    // PHP 8: '' == 0 is false. With no groups $gresult[0] is ''
+                    // and the legacy expression fell through to '' + 1, which
+                    // throws a TypeError and leaves the page half-rendered.
+                    // Keep the historical 600 default in that case.
+                    $new_grpnum = (isset($gresult[0]) && $gresult[0] !== '')
+                        ? (int)$gresult[0] + 1 : 600;
+                ?>
                 <td><a href="#" class="info"><?php echo __("Ring-Group Number")?><span><?php echo __("The number users will dial to ring extensions in this ring group")?></span></a></td>
-                <td><input class='input w100' type="text" data-extdisplay="" name="account" value="<?php  if ($gresult[0]==0) { echo "600"; } else { echo $gresult[0] + 1; } ?>" tabindex="<?php echo ++$tabindex;?>"></td>
+                <td><input class='input w100' type="text" data-extdisplay="" name="account" value="<?php echo $new_grpnum; ?>" tabindex="<?php echo ++$tabindex;?>"></td>
 <?php         } ?>
             </tr>
 

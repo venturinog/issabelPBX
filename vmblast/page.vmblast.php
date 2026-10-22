@@ -137,8 +137,16 @@ if (isset($gresults)) {
 ?>
 				<input size="5" type="hidden" name="account" value="<?php  echo $extdisplay; ?>" tabindex="<?php echo ++$tabindex;?>">
 <?php 	} else { ?>
+				<?php
+					// PHP 8: '' == 0 is false. With no groups $gresult[0] is ''
+					// and the legacy expression fell through to '' + 1, which
+					// throws a TypeError and leaves the page half-rendered.
+					// Keep the historical 500 default in that case.
+					$new_grpnum = (isset($gresult[0]) && $gresult[0] !== '')
+						? (int)$gresult[0] + 1 : 500;
+				?>
 				<td><a href="#" class="info"><?php echo __("VMBlast Number")?><span><?php echo __("The number users will dial to voicemail boxes in this VMBlast group")?></span></a></td>
-				<td><input class='w100 input' type="text" name="account" data-extdisplay="" value="<?php  if ($gresult[0]==0) { echo "500"; } else { echo $gresult[0] + 1; } ?>" tabindex="<?php echo ++$tabindex;?>"></td>
+				<td><input class='w100 input' type="text" name="account" data-extdisplay="" value="<?php echo $new_grpnum; ?>" tabindex="<?php echo ++$tabindex;?>"></td>
 <?php 		} ?>
 			</tr>
 
