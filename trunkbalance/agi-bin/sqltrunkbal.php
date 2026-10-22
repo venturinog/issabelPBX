@@ -2,6 +2,15 @@
 
 /* $Id: sql.php 7805 2009-06-09 11:05:41Z xrobau $ */
 
+// La API ext/mysql se elimino en PHP 7.0. Este fichero se porta a mysqli.
+// Desde PHP 8.1 el modo de reporte por defecto de mysqli lanza excepciones
+// (mysqli_sql_exception); se vuelve al modo antiguo de "devolver false" porque
+// toda esta clase comprueba los valores de retorno y guarda el error en
+// $this->errstr.
+if (class_exists('mysqli') && function_exists('mysqli_report')) {
+	mysqli_report(MYSQLI_REPORT_OFF);
+}
+
 // SQL Abstraction Layer for AGI Applications
 // Original Release by Rob Thomas (xrobau@gmail.com)
 // Copyright Rob Thomas (2009)
@@ -158,16 +167,16 @@ class AGIDB {
 
   	// Determine DB type
 	if ($this->dbtype == 'mysql') {
-		$dbhandle = mysql_connect($this->dbhost, $this->dbuser, $this->dbpass);
+		$dbhandle = mysqli_connect($this->dbhost, $this->dbuser, $this->dbpass);
 		if (!$dbhandle) {
-			$this->errstr = 'SEVERE: AGI could not connect to MySQL Database. '.mysql_error();
-			debug ($this->errstr, 1);
+			$this->errstr = 'SEVERE: AGI could not connect to MySQL Database. '.mysqli_connect_error();
+			$this->debug($this->errstr, 1);
 			return null;
 		}
 		$this->debug("Connected to MySQL database OK.", 4);
-		$selected = mysql_select_db($this->dbname, $dbhandle);
+		$selected = mysqli_select_db($dbhandle, $this->dbname);
 		if (!$selected) {
-			$this->errstr = 'SEVERE: AGI could not select MySQL Database "'.$this->dbname.'" - '.mysql_error();
+			$this->errstr = 'SEVERE: AGI could not select MySQL Database "'.$this->dbname.'" - '.mysqli_error($dbhandle);
 			$this->debug($this->errstr, 1);
 			return null;
 		}
@@ -193,13 +202,13 @@ class AGIDB {
 		// Bugger. OK, We'll have to use php-sqlite3 then. If the module is already loaded, or is
 		// compiled in, we'll already have sqlite3_ commands. 
 		} elseif (!function_exists('sqlite3_open')) {
-			$this->debug('Loading sqlite3.so', 4);
-			// It's not loaded. Load it.
-			dl('sqlite3.so');
-			// That would have crashed PHP if it couldn't load it, so we know it's loaded if
-			// it got to here.
-			$this->debug('Loaded', 4);
-		} 
+			// dl() se elimino en PHP 7.0, asi que no hay forma de cargar la
+			// extension desde aqui. La extension sqlite3 va en el paquete
+			// php-pdo de EL10; si no esta cargada, se aborta con error claro.
+			$this->errstr = 'SEVERE: AGI requires the SQLite3 extension and it is not loaded';
+			$this->debug($this->errstr, 1);
+			return null;
+		}
 		// We now have sqlite3_ functions. Use them!
 		$dbhandle = sqlite3_open($this->dbfile);
 		if (!$dbhandle) {
@@ -264,28 +273,46 @@ class AGIDB {
 
 	switch ($this->db) {
 		case "mysql":
-			$res = mysql_query($result, $this->dbhandle);
+			$res = mysqli_query($this->dbhandle, $result);
 			if (!$res) {
-				$this->errstr = "MySQL Error: ".mysql_error()." with query $result";
+				$this->errstr = "MySQL Error: ".mysqli_error($this->dbhandle)." with query $result";
 				$this->debug($this->errstr, 1);
 				return false;
 			}
+			// Una consulta que no devuelve filas (INSERT, UPDATE, ...) devuelve
+			// true en lugar de un mysqli_result: mysqli_num_rows() con un boolean
+			// lanzaria TypeError en PHP 8.
+			if (!($res instanceof mysqli_result)) {
+				$this->numrows = 0;
+				return $type == "NONE" ? true : array();
+			}
 			// Loop through the returned result set, loading it into the array to return
 			// to the caller.
-			$this->numrows = mysql_num_rows($res);
+			$this->numrows = mysqli_num_rows($res);
 			// Return the correct type.
 			if ($type == "NONE") {
+				mysqli_free_result($res);
 				return true;
 			}
-			for ($i = 0; $i <= $this->numrows; $i++) {
-				if ($type == "NUM") {
-					$sqlresult[$i] = mysql_fetch_array($res, MYSQL_NUM);
-				} elseif ($type = "ASSOC") {
-					$sqlresult[$i] = mysql_fetch_array($res, MYSQL_ASSOC);
-				} else {
-					$sqlresult[$i] = mysql_fetch_array($res, MYSQL_BOTH);
+			// Antes el bucle iba de 0 a numrows inclusive (una vuelta de mas,
+			// que dejaba un false final) y el elseif asignaba en vez de
+			// comparar ($type = "ASSOC"), con lo que los tres modos caian en ASSOC.
+			$sqlresult = array();
+			$i = 0;
+			if ($type == "NUM") {
+				while ($row = mysqli_fetch_array($res, MYSQLI_NUM)) {
+					$sqlresult[$i++] = $row;
+				}
+			} elseif ($type == "ASSOC") {
+				while ($row = mysqli_fetch_array($res, MYSQLI_ASSOC)) {
+					$sqlresult[$i++] = $row;
+				}
+			} else {
+				while ($row = mysqli_fetch_array($res, MYSQLI_BOTH)) {
+					$sqlresult[$i++] = $row;
 				}
 			}
+			mysqli_free_result($res);
 			return $sqlresult;
 		case "sqlite":
 			$res = $this->dbhandle->query($result);
@@ -303,7 +330,7 @@ class AGIDB {
 			$i = 0;
 			if ($type == "NUM") {
 				while ($sqlresult[$i++] = $res->fetchArray(SQLITE3_NUM));
-			} elseif ($type = "ASSOC") {
+			} elseif ($type == "ASSOC") {
 				while ($sqlresult[$i++] = $res->fetchArray(SQLITE3_ASSOC));
 			} else {
 				while ($sqlresult[$i++] = $res->fetchArray(SQLITE3_BOTH));
@@ -585,7 +612,7 @@ class AGIDB {
 
 	switch ($this->db) {
 		case "mysql":
-			return mysql_real_escape_string($str, $this->dbhandle);
+			return mysqli_real_escape_string($this->dbhandle, $str);
 		case "sqlite":
 		case "sqlite3":
 			// SQLite only needs to care about single ticks - "'". Escape

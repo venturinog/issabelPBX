@@ -152,7 +152,7 @@ function callback_add($post){
 	if(method_exists($db,'insert_id')) {
 		$id = $db->insert_id();
 	} else {
-		$id = $amp_conf["AMPDBENGINE"] == "sqlite3" ? sqlite_last_insert_rowid($db->connection) : mysql_insert_id($db->connection);
+		$id = $amp_conf["AMPDBENGINE"] == "sqlite3" ? $db->connection->lastInsertRowID() : mysqli_insert_id($db->connection);
 	}
 	return($id);
 }

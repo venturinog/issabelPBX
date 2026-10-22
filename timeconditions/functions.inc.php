@@ -585,7 +585,7 @@ function timeconditions_add($post){
     if(method_exists($db,'insert_id')) {
         $id = $db->insert_id();
     } else {
-        $id = $amp_conf["AMPDBENGINE"] == "sqlite3" ? sqlite_last_insert_rowid($db->connection) : mysql_insert_id($db->connection);
+        $id = $amp_conf["AMPDBENGINE"] == "sqlite3" ? $db->connection->lastInsertRowID() : mysqli_insert_id($db->connection);
     }
     timeconditions_create_fc($id, $displayname);
     return $id;
@@ -880,7 +880,7 @@ function timeconditions_timegroups_add_group($description,$times=null) {
     if(method_exists($db,'insert_id')) {
         $timegroup = $db->insert_id();
     } else {
-        $timegroup = $amp_conf["AMPDBENGINE"] == "sqlite3" ? sqlite_last_insert_rowid($db->connection) : mysql_insert_id($db->connection);
+        $timegroup = $amp_conf["AMPDBENGINE"] == "sqlite3" ? $db->connection->lastInsertRowID() : mysqli_insert_id($db->connection);
     }
     if (isset($times)) {
         timeconditions_timegroups_edit_times($timegroup,$times);
@@ -898,7 +898,7 @@ function timeconditions_timegroups_add_group_timestrings($description,$timestrin
     if(method_exists($db,'insert_id')) {
         $timegroup = $db->insert_id();
     } else {
-        $timegroup = $amp_conf["AMPDBENGINE"] == "sqlite3" ? sqlite_last_insert_rowid($db->connection) : mysql_insert_id($db->connection);
+        $timegroup = $amp_conf["AMPDBENGINE"] == "sqlite3" ? $db->connection->lastInsertRowID() : mysqli_insert_id($db->connection);
     }
     timeconditions_timegroups_edit_timestrings($timegroup,$timestrings);
     needreload();

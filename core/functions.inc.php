@@ -7760,7 +7760,7 @@ function core_routing_addbyid($name, $outcid, $outcid_mode, $password, $emergenc
   if(method_exists($db,'insert_id')) {
       $route_id = $db->insert_id();
   } else {
-      $route_id = $amp_conf["AMPDBENGINE"] == "sqlite3" ? sqlite_last_insert_rowid($db->connection) : mysql_insert_id($db->connection);
+      $route_id = $amp_conf["AMPDBENGINE"] == "sqlite3" ? $db->connection->lastInsertRowID() : mysqli_insert_id($db->connection);
   }
 
   core_routing_updatepatterns($route_id, $patterns);

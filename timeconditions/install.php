@@ -9,7 +9,7 @@ if (!defined('ISSABELPBX_IS_AUTH')) { die('No direct script access allowed'); }
 		if(method_exists($db,'insert_id')) {
 			$timegroup = $db->insert_id();
 		} else {
-			$timegroup = $amp_conf["AMPDBENGINE"] == "sqlite3" ? sqlite_last_insert_rowid($db->connection) : mysql_insert_id($db->connection);
+			$timegroup = $amp_conf["AMPDBENGINE"] == "sqlite3" ? $db->connection->lastInsertRowID() : mysqli_insert_id($db->connection);
 		}
 		_timeconditions_timegroups_edit_timestrings($timegroup,$timestrings);
 		return $timegroup;
