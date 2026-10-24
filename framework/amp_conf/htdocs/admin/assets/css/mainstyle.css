@@ -494,9 +494,15 @@ select {
   padding: 2px;
 }
 
+/* Secrets (device secret, AMPMGRPASS): keep the value unreadable while the
+   field is idle. CSS blur radius is about 2 sigma, so 12px smears glyphs well
+   past their advance width. Three identical layers add ink without putting a
+   sharper, smaller shadow back on top of the smoothed one. text-fill-color is
+   needed because modern-bridge sets color !important on #page_body inputs. */
 .confidential:not(:focus):not(:hover) {
   color: transparent;
-  text-shadow: 0 0 5px rgba(0,0,0,0.5);
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 12px var(--pbx-text, #000), 0 0 12px var(--pbx-text, #000), 0 0 12px var(--pbx-text, #000);
 }
 
 #techlabel {

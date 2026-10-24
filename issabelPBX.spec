@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        21
+Release:        22
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,12 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Oct 24 2026 Issabel Foundation <info@issabel.org> - 2.13.0-22
+- Fix the device secret and AMPMGRPASS obfuscation: modern-bridge forces
+  color !important on #page_body inputs, so the value was painted in normal
+  text color. Hide it with -webkit-text-fill-color and a much heavier
+  text-shadow.
+
 * Thu Oct 22 2026 Issabel Foundation <info@issabel.org> - 2.13.0-21
 - Ring Groups and VM Blast: fix a PHP 8 TypeError that aborted the add page
   when no group existed. '' == 0 is false since PHP 8, so the legacy fallback
