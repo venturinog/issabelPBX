@@ -5631,3 +5631,12 @@ msgstr ""
 
 msgid "Choose a file..."
 msgstr ""
+
+msgid "Migrate to WebRTC Device"
+msgstr ""
+
+msgid "Migrate to Generic Device"
+msgstr ""
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr ""

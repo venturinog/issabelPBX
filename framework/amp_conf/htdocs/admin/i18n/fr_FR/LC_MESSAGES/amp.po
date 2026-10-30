@@ -6447,3 +6447,12 @@ msgstr ""
 
 msgid "Back"
 msgstr "Retour"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migrer vers un périphérique WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "Migrer vers un périphérique générique"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Le formulaire a été pré-rempli avec les paramètres du type de périphérique cible. Vérifiez les options du périphérique avant d'enregistrer."

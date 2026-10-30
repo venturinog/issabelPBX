@@ -9,7 +9,12 @@ if($extens===null) $extens=array();
 $rnaventries = array();
 foreach($extens as $idx=>$data) {
     $midev = core_devices_get($data[0]);
-    $rnaventries[]=array($data[0],$data[1],'<span class="tag is-white tagfixed">'.$midev['tech'].'</span> '.$data[0]);
+    $tech = isset($midev['tech']) ? $midev['tech'] : '';
+    if (isset($midev['tech']) && issabel_devices_pjsip_is_webrtc($midev)) {
+        $tech = 'WebRTC';
+    }
+    $tag = '<span class="tag is-white tagfixed">'.$tech.'</span>';
+    $rnaventries[]=array($data[0],$data[1],$tag.'<span class="rnav-id">'.$data[0].'</span>');
 }
 drawListMenu($rnaventries, $type, $display, $extdisplay);
 ?>

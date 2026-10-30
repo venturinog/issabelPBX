@@ -6731,3 +6731,12 @@ msgstr ""
 
 #~ msgid "The Zap Channel number to map to a DID"
 #~ msgstr "Zap-numret att mappa mot ett direktnummer."
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migrera till WebRTC-enhet"
+
+msgid "Migrate to Generic Device"
+msgstr "Migrera till generisk enhet"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Formuläret har förfyllts med inställningarna för mål enhetstyp. Granska enhetsalternativen innan du sparar."

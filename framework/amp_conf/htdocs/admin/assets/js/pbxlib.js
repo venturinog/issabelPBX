@@ -1611,10 +1611,23 @@ up.compiler('.content', function(element,data) {
 function add_rnav_tooltips() {
     // if rnav entries are hidden/overflow, add tooltip
     $('#rnavul > li > a').each(function() {
-        if(isOverflown(this)) {
+        var name = this.querySelector('.rnav-name');
+        if(rnav_name_is_cut(name || this)) {
             $(this).attr('data-tooltip',$(this).data('title'));
         }
     });
+}
+
+/* With overflow:clip the element is not a scroll container, so scrollWidth
+   cannot tell whether the name was cut; measure the text itself instead. */
+function rnav_name_is_cut(element) {
+    if (element.scrollWidth > element.clientWidth + 1) {
+        return true;
+    }
+
+    var range = document.createRange();
+    range.selectNodeContents(element);
+    return range.getBoundingClientRect().width > element.getBoundingClientRect().width + 1;
 }
 
 function paint_rnav() {

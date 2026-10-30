@@ -8651,3 +8651,12 @@ msgstr ""
 
 #~ msgid "Other"
 #~ msgstr "Другое"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Перейти на устройство WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "Перейти на обычное устройство"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Форма заполнена настройками целевого типа устройства. Проверьте параметры устройства перед сохранением."

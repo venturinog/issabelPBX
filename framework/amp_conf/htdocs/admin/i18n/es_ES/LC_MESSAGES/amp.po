@@ -5971,3 +5971,12 @@ msgstr "Desactivar las funciones de transferencia (normalmente ## y *2) para las
 
 msgid "Disallow transfer features for inbound callers"
 msgstr "No permitir transferencias en llamadas entrantes"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migrar a dispositivo WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "Migrar a dispositivo genérico"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "El formulario se ha rellenado con la configuración del tipo de dispositivo de destino. Revise las opciones del dispositivo antes de guardar."

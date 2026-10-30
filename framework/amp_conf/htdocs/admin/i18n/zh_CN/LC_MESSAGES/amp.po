@@ -6140,3 +6140,12 @@ msgstr ""
 
 #~ msgid "The Zap Channel number to map to a DID"
 #~ msgstr "要映射到DID的Zap频道号"
+
+msgid "Migrate to WebRTC Device"
+msgstr "迁移到 WebRTC 设备"
+
+msgid "Migrate to Generic Device"
+msgstr "迁移到通用设备"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "表单已预填目标设备类型的设置。保存前请检查设备选项。"

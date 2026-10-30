@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        22
+Release:        24
 Summary:        issabelPBX
 
 License:        GPL
@@ -86,6 +86,18 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Fri Oct 30 2026 Issabel Foundation <info@issabel.org> - 2.13.0-24
+- Align the tag, extension number and name of the right-hand navigation list
+  into fixed columns, and ellipsize long names with a full-name tooltip.
+
+* Fri Oct 30 2026 Issabel Foundation <info@issabel.org> - 2.13.0-23
+- Add a "Migrate to WebRTC Device" / "Migrate to Generic Device" link to
+  PJSIP extensions. It pre-fills the device form with the target values and
+  the admin still has to review and submit it. The WebRTC preset and the
+  migration share one helper, so they cannot diverge, and WebRTC devices also
+  get direct_media=no now. WebRTC extensions are tagged WebRTC instead of
+  pjsip in the navigation list. Translated to all shipped locales.
+
 * Sat Oct 24 2026 Issabel Foundation <info@issabel.org> - 2.13.0-22
 - Fix the device secret and AMPMGRPASS obfuscation: modern-bridge forces
   color !important on #page_body inputs, so the value was painted in normal

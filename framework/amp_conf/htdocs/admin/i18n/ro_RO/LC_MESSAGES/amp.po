@@ -6392,3 +6392,12 @@ msgstr ""
 
 #~ msgid "The Zap Channel number to map to a DID"
 #~ msgstr "Numarul de Canal Zap de mapat la un DID"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migrează la dispozitiv WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "Migrează la dispozitiv generic"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Formularul a fost precompletat cu setările tipului de dispozitiv țintă. Verificați opțiunile dispozitivului înainte de salvare."

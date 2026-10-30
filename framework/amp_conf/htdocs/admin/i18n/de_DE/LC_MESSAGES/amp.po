@@ -5498,3 +5498,12 @@ msgstr ""
 
 #~ msgid "Outbound Caller ID"
 #~ msgstr "Ausgehende Anrufer ID"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Zu WebRTC-Gerät migrieren"
+
+msgid "Migrate to Generic Device"
+msgstr "Zu generischem Gerät migrieren"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Das Formular wurde mit den Einstellungen des Zielgerätetyps vorausgefüllt. Prüfen Sie die Geräteoptionen vor dem Speichern."

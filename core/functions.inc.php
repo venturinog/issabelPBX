@@ -5897,7 +5897,7 @@ function core_devices_addsip($account,$pjsip='') {
                 }
             } elseif ($keyword == 'vmexten' && $data == '') {
                 // don't add it
-            } elseif (in_array($keyword, array('dtlscertfile', 'dtlsprivatekey')) && $data == '') {
+            } elseif (in_array($keyword, array('dtlscertfile', 'dtlsprivatekey', 'dtls_cert_file', 'dtls_private_key', 'dtls_ca_file')) && $data == '') {
                 // don't add it
             } else {
                 $sipfields[] = array($account, $keyword, $data, $flag++);
@@ -8999,7 +8999,132 @@ function core_devices_configpageinit($dispnum) {
 
         // Add the 'proces' functions
         $currentcomponent->addguifunc('core_devices_configpageload');
+        // Runs after findmefollow_configpageload (default sortorder 5) so the
+        // migration link can be added to the Follow Me button row.
+        $currentcomponent->addguifunc('core_devices_webrtc_link', 9);
         $currentcomponent->addprocessfunc('core_devices_configprocess');
+    }
+}
+
+/**
+ * PJSIP device settings that turn an endpoint into a WebRTC device.
+ *
+ * Single source of truth for the "PJSIP WebRTC Device" preset used when
+ * creating an extension and for the migration of an existing device, so both
+ * paths always write the same values.
+ */
+function issabel_pjsip_webrtc_options() {
+    global $amp_conf;
+
+    $certfile = (isset($amp_conf['HTTPSCERTFILE']) && $amp_conf['HTTPSCERTFILE'] <> '')
+        ? $amp_conf['HTTPSCERTFILE'] : '/etc/asterisk/keys/asterisk.pem';
+    $privkey = (isset($amp_conf['HTTPSPRIVATEKEY']) && $amp_conf['HTTPSPRIVATEKEY'] <> '')
+        ? $amp_conf['HTTPSPRIVATEKEY'] : '/etc/asterisk/keys/asterisk.pem';
+
+    return array(
+        'transport'                    => 'transport-wss',
+        'use_avpf'                     => 'yes',
+        'rtcp_mux'                     => 'yes',
+        'ice_support'                  => 'yes',
+        'media_encryption'             => 'dtls',
+        'dtls_verify'                  => 'fingerprint',
+        'media_use_received_transport' => 'yes',
+        'disallow'                     => 'all',
+        'allow'                        => 'ulaw,alaw,g722,gsm,vp9,vp8,h264,opus',
+        'dtls_setup'                   => 'actpass',
+        'direct_media'                 => 'no',
+        'dtls_cert_file'               => $certfile,
+        'dtls_private_key'             => $privkey,
+    );
+}
+
+/**
+ * PJSIP device settings for a generic (hardphone) device, i.e. the template
+ * defaults for every keyword that issabel_pjsip_webrtc_options() changes.
+ */
+function issabel_pjsip_generic_options($devopts) {
+    $options = array();
+    foreach (array_keys(issabel_pjsip_webrtc_options()) as $keyword) {
+        $options[$keyword] = isset($devopts[$keyword]['value']) ? $devopts[$keyword]['value'] : '';
+    }
+    return $options;
+}
+
+/**
+ * Tells whether a PJSIP device is configured as a WebRTC device.
+ *
+ * There is no flag for the current mode in the database, it is inferred from
+ * the endpoint settings. This also detects devices configured by hand.
+ */
+function issabel_devices_pjsip_is_webrtc($device) {
+    if (!is_array($device)) {
+        $device = core_devices_get($device);
+    }
+    if (empty($device) || !isset($device['tech']) || strtolower($device['tech']) != 'pjsip') {
+        return false;
+    }
+    $transport = isset($device['transport']) ? strtolower($device['transport']) : '';
+    $media_encryption = isset($device['media_encryption']) ? strtolower($device['media_encryption']) : '';
+    return ($media_encryption == 'dtls' && strpos($transport, 'ws') !== false);
+}
+
+/**
+ * Adds the WebRTC/generic migration link to the extension edit page.
+ *
+ * Registered with a high sortorder so it runs after findmefollow's gui
+ * function and can append the link to the "Add Follow Me Settings" button row
+ * (every _top element is otherwise rendered in its own row). Falls back to a
+ * separate row when follow me is not active.
+ */
+function core_devices_webrtc_link() {
+    global $currentcomponent;
+    global $amp_conf;
+
+    $display = isset($_REQUEST['display']) ? $_REQUEST['display'] : null;
+    $action = isset($_REQUEST['action']) ? $_REQUEST['action'] : null;
+    $extdisplay = isset($_REQUEST['extdisplay']) ? $_REQUEST['extdisplay'] : null;
+
+    if ($display != 'extensions' || !$extdisplay || $action == 'del') {
+        return;
+    }
+
+    $deviceInfo = core_devices_get($extdisplay);
+    if (empty($deviceInfo) || !isset($deviceInfo['tech']) || strtolower($deviceInfo['tech']) != 'pjsip') {
+        return;
+    }
+
+    // Keep the current URL (display, extdisplay, skip...) and replace action
+    $migrate_params = array();
+    if (isset($_SERVER['QUERY_STRING']) && $_SERVER['QUERY_STRING'] != '') {
+        parse_str($_SERVER['QUERY_STRING'], $migrate_params);
+    }
+    unset($migrate_params['action']);
+    $migrate_qs = http_build_query($migrate_params);
+    $migrate_base_url = $_SERVER['PHP_SELF'].($migrate_qs == '' ? '' : '?'.$migrate_qs);
+
+    // The form has been pre-filled: ask the admin to review it before saving
+    if ($action == 'migrate_webrtc' || $action == 'migrate_generic') {
+        $migrate_notice = __("The form has been pre-filled with the target device settings. Review the Device Options before saving.");
+        $migrate_cancel = '<a class="button is-rounded is-small ml-3" href="'.htmlspecialchars($migrate_base_url, ENT_QUOTES).'">'.__("Cancel").'</a>';
+        $currentcomponent->addguielem('_top', new gui_label('migratenotice', $migrate_notice.$migrate_cancel, false, 'is-block has-background-warning px-2 mb-3'), 6);
+        return;
+    }
+
+    if (!isset($amp_conf['HTTPSCERTFILE']) || $amp_conf['HTTPSCERTFILE'] == '') {
+        return;
+    }
+
+    $is_webrtc = issabel_devices_pjsip_is_webrtc($deviceInfo);
+    $migrate_to = $is_webrtc ? 'migrate_generic' : 'migrate_webrtc';
+    $migrate_icon = $is_webrtc ? 'fa-phone' : 'fa-desktop';
+    $migrate_text = $is_webrtc ? __("Migrate to Generic Device") : __("Migrate to WebRTC Device");
+    $migrate_label = '<span class="icon mr-1"><i class="fa '.$migrate_icon.'"></i></span>'.$migrate_text;
+    $migrate_url = htmlspecialchars($migrate_base_url.($migrate_qs == '' ? '?' : '&').'action='.$migrate_to, ENT_QUOTES);
+    $migrate_anchor = '<a class="button is-rounded is-small ml-3" href="'.$migrate_url.'" id="migratepjsip">'.$migrate_label.'</a>';
+
+    // Same row as the Follow Me button when it is present
+    if (!$currentcomponent->appendguielemhtml('_top', 'findmefollowlink', $migrate_anchor)) {
+        $currentcomponent->addguielem('_top', new gui_link('migratepjsip', $migrate_label, $migrate_url), 6);
     }
 }
 
@@ -9148,33 +9273,24 @@ function core_devices_configpageload() {
             
             } elseif($devinfo_tech=='webrtcpjsip') {
                 $devopts = $currentcomponent->getgeneralarrayitem('devtechs', 'pjsip');
-                $devopts['transport']['value']='transport-wss';
-                $devopts['use_avpf']['value']='yes'; 
-                $devopts['rtcp_mux']['value']='yes';
-                $devopts['ice_support']['value']='yes';
-                $devopts['media_encryption']['value']='dtls';
-                $devopts['dtls_verify']['value']='fingerprint';
-                $devopts['media_use_received_transport']['value']='yes';
-                $devopts['disallow']['value']='all';
-                $devopts['allow']['value']='ulaw,alaw,g722,gsm,vp9,vp8,h264,opus';
-                $devopts['dtls_setup']['value']='actpass';
-                if(isset($amp_conf['HTTPSPRIVATEKEY'])) {
-                   $privkey = ($amp_conf['HTTPSPRIVATEKEY']<>'')?$amp_conf['HTTPSPRIVATEKEY']:'/etc/asterisk/keys/asterisk.pem';
-                } else {
-                   $privkey = '/etc/asterisk/keys/asterisk.pem';
+                foreach (issabel_pjsip_webrtc_options() as $webrtcopt => $webrtcvalue) {
+                    $devopts[$webrtcopt]['value'] = $webrtcvalue;
                 }
-
-                if(isset($amp_conf['HTTPSCERTFILE'])) {
-                   $certfile = ($amp_conf['HTTPSCERTFILE']<>'')?$amp_conf['HTTPSCERTFILE']:'/etc/asterisk/keys/asterisk.pem';
-                } else {
-                   $certfile = '/etc/asterisk/keys/asterisk.pem';
-                }
-                $devopts['dtls_cert_file']['value']=$certfile;
-                $devopts['dtls_private_key']['value']=$privkey;
                 $devinfo_tech='pjsip';
 
             } else {
                 $devopts = $currentcomponent->getgeneralarrayitem('devtechs', $devinfo_tech);
+
+                // Migration: pre-fill the form with the target values instead of
+                // the stored ones. Nothing is saved until the admin submits.
+                if ($display == 'extensions' && $devinfo_tech == 'pjsip' && ($action == 'migrate_webrtc' || $action == 'migrate_generic')) {
+                    $migrateopts = ($action == 'migrate_webrtc')
+                        ? issabel_pjsip_webrtc_options()
+                        : issabel_pjsip_generic_options($devopts);
+                    foreach ($migrateopts as $migrateopt => $migrateval) {
+                        ${'devinfo_'.$migrateopt} = $migrateval;
+                    }
+                }
             }
 
             if (is_array($devopts)) {

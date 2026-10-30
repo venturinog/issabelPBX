@@ -6662,3 +6662,12 @@ msgstr "retrieve_conf falhou ao criar links simbólicos: %s<br>Isso pode resulta
 msgid "Unable to write to %s"
 msgstr "Não foi possível escrever para %s"
 
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migrar para dispositivo WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "Migrar para dispositivo genérico"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "O formulário foi preenchido com as configurações do tipo de dispositivo de destino. Revise as opções do dispositivo antes de salvar."

@@ -1036,3 +1036,40 @@ table.table.notfixed {
 .tagfixed {
   min-width:4em;
 }
+
+/* Columnas del listado lateral (#rnav): tecnologia, numero y nombre.
+   El ancho fijo evita que "WebRTC" desplace las otras columnas; va con
+   width y no solo min-width porque .current pone el texto en negrita. */
+.rnav .tagfixed {
+  width: 4.75em;
+  min-width: 4.75em;
+  margin-right: .2em;
+  padding-left: .45em;
+  padding-right: .45em;
+  font-size: .65rem;
+  text-align: center;
+}
+.rnav .rnav-id {
+  display: inline-block;
+  min-width: 3.5em;
+  text-align: right;
+}
+.rnav ul {
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+.rnav ul a {
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.rnav .rnav-key {
+  flex: 0 0 auto;
+}
+.rnav .rnav-name {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: clip;
+  text-overflow: ellipsis;
+}

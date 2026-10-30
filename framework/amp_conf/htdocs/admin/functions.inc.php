@@ -475,7 +475,11 @@ function drawListMenu($results, $type, $dispnum, $extdisplay, $add_extra_param='
             if(!isset($result[4])) { $extraparam=''; } else { $extraparam=$result[4]; }
             if(!isset($result[5])) { $enable_unpoly=true; } else { $enable_unpoly=$result[5]; }
             $extracss = (isset($result[3]))?$result[3]:"";
-            $label = ($result[2]!="")?"{$result[2]}: {$result[1]}":"{$result[1]}";
+            if ($result[2] != "") {
+                $label = "<span class='rnav-key'>{$result[2]}:</span> <span class='rnav-name'>{$result[1]}</span>";
+            } else {
+                $label = "<span class='rnav-name'>{$result[1]}</span>";
+            }
             echo "\t<li>";
             if($enable_unpoly==1) {
                 $unpoly_attributes = "up-transition='move-left' up-navigate=true up-cache=false up-follow up-target='.content, #action-bar'";

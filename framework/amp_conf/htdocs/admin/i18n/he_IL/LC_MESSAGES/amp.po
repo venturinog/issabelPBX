@@ -5369,3 +5369,12 @@ msgstr ""
 
 #~ msgid "Recordings"
 #~ msgstr "הקלטות"
+
+msgid "Migrate to WebRTC Device"
+msgstr "העבר להתקן WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "העבר להתקן רגיל"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "הטופס מולא מראש בהגדרות סוג ההתקן היעד. יש לבדוק את אפשרויות ההתקן לפני השמירה."

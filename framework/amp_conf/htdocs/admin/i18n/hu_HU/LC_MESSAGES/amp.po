@@ -5586,3 +5586,12 @@ msgstr ""
 
 #~ msgid "\")"
 #~ msgstr "\")"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migrálás WebRTC-eszközre"
+
+msgid "Migrate to Generic Device"
+msgstr "Migrálás általános eszközre"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Az űrlap előre ki van töltve a cél eszköztípus beállításaival. Mentés előtt ellenőrizze az eszközbeállításokat."

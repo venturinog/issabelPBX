@@ -6298,3 +6298,12 @@ msgstr ""
 
 #~ msgid "The Zap Channel number to map to a DID"
 #~ msgstr "Номер на Zap Канал за прикачане на DID"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Мигриране към WebRTC устройство"
+
+msgid "Migrate to Generic Device"
+msgstr "Мигриране към стандартно устройство"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Формулярът е попълнен предварително с настройките за целевия тип устройство. Прегледайте опциите на устройството преди запазване."

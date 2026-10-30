@@ -155,6 +155,32 @@ class component {
         $this->_sorted_guifuncs = false;
     }
 
+    /**
+     * Appends raw HTML to an already registered gui text element.
+     *
+     * Useful to render several buttons in the same table row: every _top gui
+     * element is printed in its own row, so a second gui_link would stack
+     * below the first one instead of sitting next to it.
+     *
+     * Returns false when the element is not present.
+     */
+    function appendguielemhtml($section, $elemname, $html) {
+        if ($section != '_top' || !is_array($this->_guielems_top)) {
+            return false;
+        }
+
+        foreach ($this->_guielems_top as $elements) {
+            foreach ($elements as $element) {
+                if ($element->_elemname == $elemname && property_exists($element, 'html_text')) {
+                    $element->html_text .= $html;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
     function addprocessfunc($function, $sortorder = 5) {
         if ( $sortorder < 0 || $sortorder > 9 ) {
                 trigger_error('$sortorder must be between 0 and 9 in component->addprocessfunc()');

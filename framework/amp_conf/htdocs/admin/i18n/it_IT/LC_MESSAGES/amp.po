@@ -6316,3 +6316,12 @@ msgstr ""
 
 #~ msgid "The Zap Channel number to map to a DID"
 #~ msgstr "Il numero del Canale Zap da mappare su una Selezione Passante"
+
+msgid "Migrate to WebRTC Device"
+msgstr "Migra a dispositivo WebRTC"
+
+msgid "Migrate to Generic Device"
+msgstr "Migra a dispositivo generico"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "Il modulo è stato precompilato con le impostazioni del tipo di dispositivo di destinazione. Verificare le opzioni del dispositivo prima di salvare."

@@ -8776,3 +8776,12 @@ msgstr "zapでバイスが移行されました"
 
 #~ msgid "Call Flow"
 #~ msgstr "コールフロー"
+
+msgid "Migrate to WebRTC Device"
+msgstr "WebRTCデバイスに移行"
+
+msgid "Migrate to Generic Device"
+msgstr "汎用デバイスに移行"
+
+msgid "The form has been pre-filled with the target device settings. Review the Device Options before saving."
+msgstr "対象デバイスタイプの設定でフォームを事前入力しました。保存する前にデバイスオプションを確認してください。"
