@@ -166,7 +166,17 @@ if ($extdisplay) {
 
 <?php
 if(tts_enabled()) {
-    $arrOptionsLang = array( 'en-US'=>'en-US', 'es-ES'=>'es-ES', 'fr-FR'=>'fr-FR', 'it-IT'=>'it-IT','de-DE'=>'de-DE','en-GB'=>'en-GB'  );
+    $arrOptionsLang = array(
+        'en-US'=>'en-US',
+        'en-GB'=>'en-GB',
+        'es-MX'=>'es-MX',
+        'es-ES'=>'es-ES',
+        'pt-BR'=>'pt-BR',
+        'pt-PT'=>'pt-PT',
+        'fr-FR'=>'fr-FR',
+        'it-IT'=>'it-IT',
+        'de-DE'=>'de-DE',
+    );
 ?>
 
     <tr><td colspan="2"><br><h5><?php echo __("Text to Speech")?></h5></td></tr>

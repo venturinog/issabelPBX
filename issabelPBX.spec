@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        24
+Release:        26
 Summary:        issabelPBX
 
 License:        GPL
@@ -12,6 +12,9 @@ BuildRequires:  bash php-cli
 Requires(pre):  asterisk
 Requires:       php-cli php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
 Requires:       gettext
+# The TTS AGI and module use the Piper runtime and its voice set.
+Requires:       issabel-piper
+Requires:       issabel-piper-voices
 # issabelpbx_db extends the PEAR DB class (issabelpbx_DB.php:3), and
 # db_connect.php requires DB.php on every admin page via bootstrap.php.
 # Without /usr/share/pear/DB.php the whole GUI dies with
@@ -38,9 +41,22 @@ mkdir -p  %{buildroot}/etc/logrotate.d/
 cp        %{buildroot}/usr/src/issabelPBX/build/5.0/files/issabelpbx.logrotate  %{buildroot}/etc/logrotate.d/
 chmod 644 %{buildroot}/etc/logrotate.d/*
 
+install -d %{buildroot}/etc/issabel
+install -m 644 %{buildroot}/usr/src/issabelPBX/additionals/etc/issabel/piper.conf %{buildroot}/etc/issabel/piper.conf
+install -d %{buildroot}/usr/libexec/issabel-tts
+install -m 755 %{buildroot}/usr/src/issabelPBX/additionals/usr/libexec/issabel-tts/piper-slots %{buildroot}/usr/libexec/issabel-tts/piper-slots
+
 %post
 
 PODIR=/usr/src/issabelPBX
+
+# Size the Piper concurrency pool from this machine. The script only replaces
+# "slots = auto"; a numeric value set by the administrator is left untouched.
+/usr/libexec/issabel-tts/piper-slots >/dev/null 2>&1 || :
+
+# The historical picotts.agi is no longer shipped; remove a stale copy left by
+# an older module install (retrieve_conf only copies, it never deletes).
+rm -f /var/lib/asterisk/agi-bin/picotts.agi
 
 killall -q -0 asterisk
 if [ $? -eq 0 ]; then
@@ -82,10 +98,30 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %files
 /usr/src/issabelPBX/
 %config(noreplace) /etc/logrotate.d/issabelpbx.logrotate
+%config(noreplace) /etc/issabel/piper.conf
+/usr/libexec/issabel-tts/piper-slots
 
 %doc
 
 %changelog
+* Fri Nov 06 2026 Issabel Foundation <info@issabel.org> - 2.13.0-26
+- Unify the TTS AGI under issabel-tts.agi and remove picotts.agi. One script
+  now serves announcements, calendar reminders and recordings with a single
+  contract (engine, base64 command and parameters, gui, interrupt keys, digit
+  routing and speed), and the Piper voice map lives in one engine class
+  shipped with the framework. Add a Piper concurrency pool sized from MemTotal
+  and the CPU count at install time, a per-hash lock and atomic publication so
+  two identical cache misses cannot synthesize twice or stream a partial file.
+
+* Thu Nov 05 2026 Issabel Foundation <info@issabel.org> - 2.13.0-25
+- Replace Pico TTS with Piper in picotts.agi, which keeps its historical name
+  for announcement and calendar callfiles. The AGI selects one of the six
+  packaged voices from the language prefix, caches by voice and speed, and uses
+  absolute /usr/bin/piper and /usr/bin/sox paths. The TTS module drops the Pico
+  engine, defaults to Piper, includes the voice in its cache key, and fixes the
+  missing breaks in the cloud engines. Existing pico rows are migrated on
+  module install. Add the Piper runtime and voice set as requirements.
+
 * Fri Oct 30 2026 Issabel Foundation <info@issabel.org> - 2.13.0-24
 - Align the tag, extension number and name of the right-hand navigation list
   into fixed columns, and ellipsize long names with a full-name tooltip.

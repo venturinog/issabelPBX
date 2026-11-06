@@ -40,9 +40,6 @@ $templates = array(
     "Engine": "neural|standard",
     "VoiceId": ""
 }',
-'pico'=>'{
-      "language": "es-ES"
-}',
 'piper'=>'{
    "voice": "es_MX-claude-high.onnx"
 }',
@@ -69,8 +66,7 @@ $templates = array(
 
 $commands = array(
 'polly'=>'/usr/bin/node /opt/aws-nodejs/polly.js',
-'pico'=>'/usr/bin/pico2wave',
-'piper'=>'/usr/local/bin/piper',
+'piper'=>'/usr/bin/piper',
 'flite'=>'/usr/bin/flite',
 'azure'=>$amp_conf['ASTDATADIR'].'/agi-bin/azuretts.php',
 'elevenlabs'=>$amp_conf['ASTDATADIR'].'/agi-bin/elevenlabstts.php',
@@ -158,7 +154,7 @@ echo "</h2>$help</div>";
         <td>
             <select name="ttsengine_engine" id="ttsengine_engine" tabindex="<?php echo ++$tabindex;?>" class='componentSelect'>
             <?php
-                $engines = array('pico'=>'Pico TTS','piper'=>'Piper TTS','polly'=>'Amazon Polly','azure'=>'Microsoft Azure TTS','flite'=>'FLite','google'=>'Google Cloud TTS', 'elevenlabs'=>'Eleven Labs', 'custom'=>'Custom');
+                $engines = array('piper'=>'Piper TTS','polly'=>'Amazon Polly','azure'=>'Microsoft Azure TTS','flite'=>'FLite','google'=>'Google Cloud TTS', 'elevenlabs'=>'Eleven Labs', 'custom'=>'Custom');
                 foreach ($engines as $key=>$name) {
                     echo '<option value="'.$key.'"'.($key == $ttsengine_engine ? ' SELECTED' : '').'>'.$name."</option>\n";
                 }
@@ -187,7 +183,7 @@ echo "</h2>$help</div>";
 $(function () {
 
   if (!$('[name=description]').attr("value")) {
-      $('[name=ttsengine_engine]').attr({value: "pico"});
+      $('[name=ttsengine_engine]').attr({value: "piper"});
   }
   //$('#container').width($('#container').width() - $('.rnav').width() - 20).css('margin-left','-10px');
 

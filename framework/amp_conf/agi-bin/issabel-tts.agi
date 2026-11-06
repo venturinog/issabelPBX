@@ -1,0 +1,98 @@
+#!/usr/bin/php -q
+<?php
+/* vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4:
+   Codificación: UTF-8
+   +----------------------------------------------------------------------+
+   | Issabel version 6.0                                                  |
+   | http://www.issabel.org                                               |
+   +----------------------------------------------------------------------+
+   | Copyright (c) 2026 Issabel Foundation                                |
+   +----------------------------------------------------------------------+
+   | The contents of this file are subject to the General Public License  |
+   | (GPL) Version 2 (the "License"); you may not use this file except in |
+   | compliance with the License. You may obtain a copy of the License at |
+   | http://www.opensource.org/licenses/gpl-license.php                   |
+   |                                                                      |
+   | Software distributed under the License is distributed on an "AS IS"  |
+   | basis, WITHOUT WARRANTY OF ANY KIND, either express or implied. See  |
+   | the License for the specific language governing rights and           |
+   | limitations under the License.                                       |
+   +----------------------------------------------------------------------+
+*/
+
+/**
+ * Issabel text to speech AGI.
+ *
+ * Usage:
+ *   issabel-tts.agi <text> <engine> <b64(cmd)> <b64(params)> \
+ *                   [gui] [keys] [route] [speed]
+ *
+ *   gui    0 stream to the channel (default), 1 print a JSON result
+ *   keys   DTMF digits that interrupt the playback (default none)
+ *   route  1 makes a pressed digit jump to that extension (announcements)
+ *   speed  Piper speech rate factor (default 1)
+ *
+ * The historical picotts.agi name is gone on purpose: announcement,
+ * calendar and recordings all call this script.
+ */
+
+$base = dirname(__FILE__);
+require_once $base . '/issabel-tts/issabelTtsEngine.class.php';
+require_once $base . '/issabel-tts/issabelTtsAgi.class.php';
+
+$text      = isset($argv[1]) ? $argv[1] : '';
+$engine    = isset($argv[2]) && $argv[2] !== '' ? $argv[2] : 'piper';
+$cmd       = isset($argv[3]) ? base64_decode($argv[3]) : '';
+$rawParams = isset($argv[4]) ? base64_decode($argv[4]) : '';
+$gui       = isset($argv[5]) ? (int)$argv[5] : 0;
+$keys      = isset($argv[6]) ? (string)$argv[6] : '';
+$route     = isset($argv[7]) ? (int)$argv[7] : 0;
+$speed     = isset($argv[8]) && is_numeric($argv[8]) ? (float)$argv[8] : 1.0;
+
+$agi = null;
+$onFile = null;
+
+if (!$gui) {
+    $agi = new issabelTtsAgi();
+    $agi->answerIfNeeded();
+    $agi->debug('issabel-tts.agi: engine=' . $engine . ' keys=' . $keys . ' route=' . $route, 3);
+    $onFile = function ($file) use ($agi, $keys, $route) {
+        $code = $agi->stream($file, $keys);
+        if ($code >= 32) {
+            if ($route) {
+                $agi->routeDigit($code);
+            }
+            return true;
+        }
+        return ($code < 0);
+    };
+}
+
+$tts = new issabelTtsEngine($agi);
+try {
+    $files = $tts->synthesize(
+        $text,
+        array(
+            'engine'     => $engine,
+            'cmd'        => $cmd,
+            'params_raw' => $rawParams,
+            'gui'        => $gui,
+            'speed'      => $speed,
+        ),
+        $onFile
+    );
+    if ($gui) {
+        if (!empty($files[0]) && is_file($files[0])) {
+            echo json_encode(array('status' => 'success', 'file' => $files[0]));
+        } else {
+            echo json_encode(array('status' => 'error', 'error' => 'No audio was generated'));
+        }
+    }
+} catch (Exception $e) {
+    if ($agi !== null) {
+        $agi->debug('issabel-tts.agi error: ' . $e->getMessage(), 1);
+    }
+    if ($gui) {
+        echo json_encode(array('status' => 'error', 'error' => $e->getMessage()));
+    }
+}

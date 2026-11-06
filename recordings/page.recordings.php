@@ -86,8 +86,13 @@ switch ($action) {
             $tts_engine   = $tts_conf['ttsengine_engine'];
             $tts_cmd      = $tts_conf['ttsengine_cmd'];
             $tts_template = $tts_conf['ttsengine_template'];
-            $cmd = '/var/lib/asterisk/agi-bin/issabel-tts.agi "'.$text."\" $tts_engine ".base64_encode($tts_cmd).' '.base64_encode($tts_template)." 1";
-            $output = `$cmd`;
+            $agi = '/var/lib/asterisk/agi-bin/issabel-tts.agi';
+            $cmd = escapeshellarg($agi).' '.escapeshellarg($text).' '.escapeshellarg($tts_engine)
+                .' '.escapeshellarg(base64_encode($tts_cmd)).' '.escapeshellarg(base64_encode($tts_template)).' 1';
+            $output = shell_exec($cmd);
+            if ($output === null) {
+                $output = '';
+            }
             //$output="{\"result\":\"error\"}";
             $result=json_decode($output,1);
             if($result['status']=='success') {

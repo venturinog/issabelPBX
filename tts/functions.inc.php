@@ -36,10 +36,20 @@ function tts_get_config($engine) {
         case 'asterisk':
             foreach (tts_list() as $row) {
                 $cur_engine = $row['tts_engine'];
-                $text = $row['tts_text'];
-                $text_without_newlines = str_replace(array("\r\n"), '. ', $text);
+                $cmd    = isset($tts_cmd[$cur_engine]) ? $tts_cmd[$cur_engine] : '';
+                $params = isset($tts_template[$cur_engine]) ? $tts_template[$cur_engine] : '';
+                $args = issabel_tts_agi_args($row['tts_text'], array(
+                    'engine' => $cur_engine,
+                    'cmd'    => $cmd,
+                    'params' => $params,
+                    'gui'    => 0,
+                    'keys'   => '#',
+                    'route'  => 0,
+                ));
                 $ext->add('app-tts',$row['tts_id'], '', new ext_answer());
-                $ext->add('app-tts',$row['tts_id'], '', new ext_agi('issabel-tts.agi,"'.$text_without_newlines."\",$cur_engine,".base64_encode($tts_cmd[$cur_engine]).','.base64_encode($tts_template[$cur_engine])));
+                if ($args !== '') {
+                    $ext->add('app-tts',$row['tts_id'], '', new ext_agi($args));
+                }
                 $ext->add('app-tts',$row['tts_id'], '', new ext_goto($row['dest']));
             }
         break;

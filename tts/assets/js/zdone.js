@@ -14,7 +14,7 @@ up.compiler('.content', function(element,data) {
         myCodeMirror.setSize(null,200);
 
         if($('#ttsengine_engine').val()=='') {
-            $('#ttsengine_engine').val('pico');
+            $('#ttsengine_engine').val('piper');
             updateTemplate(1);
         } else {
             if($('#ttstext').val()=='') {

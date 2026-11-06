@@ -71,16 +71,25 @@ function announcement_get_config($engine) {
                 $ext->add('app-announcement-'.$row['announcement_id'], 's', 'begin', new ext_noop('Playing announcement '.$row['description']));
               
                 if ($row['tts_text']<>'' && $row['recording_id']==0) {
-                    $text = $row['tts_text'];
-                    $text = preg_replace("/\"/","",$text);
-                    if($row['repeat_msg']) {
-                        $ext->add('app-announcement-'.$row['announcement_id'], 's', 'play', new ext_agi('picotts.agi,"'.$text.'",'.$row['tts_lang'].','.$row['repeat_msg']));
-                    } else {
-                        $ext->add('app-announcement-'.$row['announcement_id'], 's', 'play', new ext_agi('picotts.agi,"'.$text.'",'.$row['tts_lang']));
+                    // allow_skip relies on the _[0-9*#] pattern of the dialplan,
+                    // so the AGI has to return every key. repeat_msg is a single
+                    // key and wins over the pattern because Asterisk prefers the
+                    // exact extension.
+                    $keys = $row['allow_skip'] ? '0123456789*#' : (string)$row['repeat_msg'];
+                    $args = issabel_tts_agi_args($row['tts_text'], array(
+                        'engine' => 'piper',
+                        'cmd'    => '/usr/bin/piper',
+                        'params' => array('lang' => $row['tts_lang']),
+                        'gui'    => 0,
+                        'keys'   => $keys,
+                        'route'  => 1,
+                    ));
+                    if ($args !== '') {
+                        $ext->add('app-announcement-'.$row['announcement_id'], 's', 'play', new ext_agi($args));
                     }
                     $ext->add('app-announcement-'.$row['announcement_id'], 's', '', new ext_goto($row['post_dest']));
 
-                    if ($row['repeat_msg']) {
+                    if ($row['repeat_msg'] && $args !== '') {
                         $ext->add('app-announcement-'.$row['announcement_id'], $row['repeat_msg'], '', new ext_goto('s,play'));
                     }
                 } else {
@@ -278,11 +287,11 @@ function announcement_change_destination($old_dest, $new_dest) {
 }
 
 function tts_enabled() {
-    global $amp_conf;
-    if(file_exists($amp_conf['ASTDATADIR'].'/agi-bin/picotts.agi')) {
-        return true;
-    } else {
-        return false;
+    if (function_exists('issabel_tts_enabled')) {
+        return issabel_tts_enabled();
     }
+    global $amp_conf;
+    $dir = !empty($amp_conf['ASTAGIDIR']) ? $amp_conf['ASTAGIDIR'] : '/var/lib/asterisk/agi-bin';
+    return is_file(rtrim($dir, '/').'/issabel-tts.agi');
 }
 ?>

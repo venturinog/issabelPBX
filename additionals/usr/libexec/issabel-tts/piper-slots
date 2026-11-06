@@ -1,0 +1,74 @@
+#!/bin/sh
+#
+# Compute the Piper concurrency pool for this machine.
+#
+# The pool exists because every Piper process loads a full voice model
+# (~180 MiB). The size is derived from MemTotal and the CPU count, never
+# from free memory: at install time the page cache makes "free" meaningless
+# and at run time it fluctuates with backups and other services.
+#
+# The result replaces "slots = auto" in /etc/issabel/piper.conf. A numeric
+# value written by the administrator is never touched.
+
+CONF="${ISSABEL_PIPER_CONF:-/etc/issabel/piper.conf}"
+PER_SLOT_MB=256
+RESERVE_MB=1536
+MAX_SLOTS=4
+
+memtotal_kb=$(awk '/^MemTotal:/ {print $2; exit}' /proc/meminfo 2>/dev/null)
+[ -n "$memtotal_kb" ] || exit 0
+
+# Containers report the host memory in /proc/meminfo. Honour a lower cgroup
+# limit when there is one.
+for limit in /sys/fs/cgroup/memory.max /sys/fs/cgroup/memory/memory.limit_in_bytes; do
+    if [ -r "$limit" ]; then
+        raw=$(cat "$limit" 2>/dev/null)
+        case "$raw" in
+            ''|max|*[!0-9]*) ;;
+            *)
+                if [ "$raw" -gt 0 ] && [ $((raw / 1024)) -lt "$memtotal_kb" ]; then
+                    memtotal_kb=$((raw / 1024))
+                fi
+                ;;
+        esac
+        break
+    fi
+done
+
+memtotal_mb=$((memtotal_kb / 1024))
+cpus=$(getconf _NPROCESSORS_ONLN 2>/dev/null || echo 1)
+
+reserve=$((memtotal_mb * 20 / 100))
+[ "$reserve" -lt "$RESERVE_MB" ] && reserve=$RESERVE_MB
+
+by_ram=$(((memtotal_mb - reserve) / PER_SLOT_MB))
+[ "$by_ram" -lt 1 ] && by_ram=1
+
+cap=$((cpus - 1))
+[ "$cap" -gt "$MAX_SLOTS" ] && cap=$MAX_SLOTS
+[ "$cap" -lt 1 ] && cap=1
+
+slots=$by_ram
+[ "$slots" -gt "$cap" ] && slots=$cap
+[ "$slots" -lt 1 ] && slots=1
+
+# Make sure the runtime directories exist and are writable by Asterisk. They
+# live under /var/lib/asterisk so the files inherit a label the Asterisk domain
+# can write; a new /var/cache path would require an selinux policy module.
+install -d -o asterisk -g asterisk -m 0770 /var/lib/asterisk/issabel-tts 2>/dev/null
+install -d -o asterisk -g asterisk -m 0770 /var/lib/asterisk/issabel-tts/cache 2>/dev/null
+install -d -o asterisk -g asterisk -m 0770 /var/lib/asterisk/issabel-tts/locks 2>/dev/null
+install -d -o asterisk -g asterisk -m 0770 /var/lib/asterisk/issabel-tts/slots 2>/dev/null
+
+if [ ! -f "$CONF" ]; then
+    exit 0
+fi
+
+# Respect an explicit value.
+if grep -Eq '^[[:space:]]*slots[[:space:]]*=[[:space:]]*[0-9]+' "$CONF" 2>/dev/null; then
+    exit 0
+fi
+
+if sed -i "s/^[[:space:]]*slots[[:space:]]*=.*/slots = ${slots}/" "$CONF" 2>/dev/null; then
+    echo "issabel-tts: Piper pool set to ${slots} slot(s) (${memtotal_mb} MB RAM, ${cpus} CPU)"
+fi

@@ -144,7 +144,7 @@ echo drawselects($dest,0);
 $(function () {
 
   if (!$('[name=description]').attr("value")) {
-      $('[name=tts_engine]').attr({value: "picotts"});
+      $('[name=tts_engine]').attr({value: "piper"});
   }
 
 });

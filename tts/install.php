@@ -29,3 +29,16 @@ foreach ($sql as $tablename=>$q) {
     }
 }
 
+// Pico TTS is no longer shipped in Issabel 6. Point existing engines and TTS
+// entries at Piper so upgrades keep working without the administrator having
+// to recreate them. The update is idempotent.
+$db->query("UPDATE tts_engines SET ttsengine_engine = 'piper', ttsengine_cmd = '/usr/bin/piper', ttsengine_template = '{\"voice\": \"es_MX-claude-high.onnx\"}' WHERE ttsengine_engine = 'pico'");
+$db->query("UPDATE tts SET tts_engine = 'piper' WHERE tts_engine = 'pico'");
+
+// Fresh installs have no engine rows at all, so seed Piper. Without this the
+// Text to Speech page has nothing to select and app-tts gets an empty command.
+$check = $db->getRow("SELECT ttsengine_id FROM tts_engines WHERE ttsengine_engine = 'piper'");
+if (empty($check)) {
+    $db->query("INSERT INTO tts_engines (ttsengine_description, ttsengine_engine, ttsengine_cmd, ttsengine_template) VALUES ('Piper', 'piper', '/usr/bin/piper', '{\"voice\": \"es_MX-claude-high.onnx\"}')");
+}
+
