@@ -539,6 +539,40 @@ if($db->IsError($check)) {
     out(__("not needed"));
 }
 
+outn(__("Checking for tts_lang.."));
+$sql = "SELECT tts_lang FROM ivr_details";
+$check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+if($db->IsError($check)) {
+    $sql = "ALTER TABLE ivr_details ADD tts_lang VARCHAR(10) NOT NULL DEFAULT 'en-US'";
+    $result = $db->query($sql);
+    if($db->IsError($result)) {
+        out(__("fatal error"));
+        die_issabelpbx($result->getDebugInfo());
+    } else {
+        out(__("added"));
+    }
+} else {
+    out(__("not needed"));
+}
+
+outn(__("Checking for tts_text.."));
+$sql = "SELECT tts_text FROM ivr_details";
+$check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+if($db->IsError($check)) {
+    // MariaDB 10.2+ requires an expression default for TEXT columns.
+    $default = preg_match('/qlite/', $amp_conf["AMPDBENGINE"]) ? "''" : "('')";
+    $sql = "ALTER TABLE ivr_details ADD tts_text TEXT NOT NULL DEFAULT " . $default;
+    $result = $db->query($sql);
+    if($db->IsError($result)) {
+        out(__("fatal error"));
+        die_issabelpbx($result->getDebugInfo());
+    } else {
+        out(__("added"));
+    }
+} else {
+    out(__("not needed"));
+}
+
 
 $issabelpbx_conf =& issabelpbx_conf::create();
 // Config Section

@@ -28,6 +28,128 @@ function ivr_destinations() {
 
 }
 
+/**
+ * Add the TTS columns to ivr_details when the module upgrade could not do it.
+ * Called from the page load and from the save path so an old database heals
+ * itself without waiting for a package reinstall.
+ */
+function ivr_check_alter_table() {
+    global $db, $amp_conf;
+
+    static $checked = false;
+    if ($checked) {
+        return;
+    }
+    $checked = true;
+
+    $sql = "SELECT tts_lang FROM ivr_details";
+    $check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+    if (DB::IsError($check)) {
+        $sql = "ALTER TABLE ivr_details ADD tts_lang VARCHAR(10) NOT NULL DEFAULT 'en-US'";
+        $result = $db->query($sql);
+        if (DB::IsError($result)) {
+            error_log('ivr: could not add tts_lang column: ' . $result->getMessage());
+        }
+    }
+
+    $sql = "SELECT tts_text FROM ivr_details";
+    $check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+    if (DB::IsError($check)) {
+        // MariaDB 10.2+ requires an expression default for TEXT columns.
+        $default = preg_match('/qlite/', isset($amp_conf['AMPDBENGINE']) ? $amp_conf['AMPDBENGINE'] : '') ? "''" : "('')";
+        $sql = "ALTER TABLE ivr_details ADD tts_text TEXT NOT NULL DEFAULT " . $default;
+        $result = $db->query($sql);
+        if (DB::IsError($result)) {
+            error_log('ivr: could not add tts_text column: ' . $result->getMessage());
+        }
+    }
+}
+
+/**
+ * Synthesize a TTS prompt with the shared Piper engine.
+ *
+ * Returns the absolute path of the generated file, or an empty string when
+ * TTS is not available or the synthesis failed. The file lives in
+ * <ASTDATADIR>/sounds/custom/tts so it is included in the regular backups.
+ */
+function ivr_tts_prompt_file($text, $lang = '') {
+    if (!function_exists('issabel_tts_agi_path') || !function_exists('issabel_tts_enabled') || !issabel_tts_enabled()) {
+        return '';
+    }
+
+    $text = function_exists('issabel_tts_normalize_text') ? issabel_tts_normalize_text($text) : trim((string)$text);
+    if ($text === '') {
+        return '';
+    }
+
+    if (function_exists('issabel_tts_normalize_lang')) {
+        $fallback = function_exists('issabel_tts_default_lang') ? issabel_tts_default_lang() : 'en-US';
+        $lang = issabel_tts_normalize_lang($lang, $fallback);
+    }
+    $params = function_exists('issabel_tts_merge_params') ? issabel_tts_merge_params(array(), $lang) : '';
+    if ($params === '') {
+        $params = json_encode($lang !== '' ? array('lang' => $lang) : array());
+    }
+
+    $class = dirname(issabel_tts_agi_path()) . '/issabel-tts/issabelTtsEngine.class.php';
+    if (!is_file($class)) {
+        error_log('ivr: TTS engine class not found at ' . $class);
+        return '';
+    }
+    require_once $class;
+    if (!class_exists('issabelTtsEngine')) {
+        return '';
+    }
+
+    try {
+        $engine = new issabelTtsEngine(null);
+        $files = $engine->synthesize($text, array(
+            'engine'     => 'piper',
+            'cmd'        => '/usr/bin/piper',
+            'params_raw' => $params,
+            'gui'        => 1,
+        ));
+        if (!empty($files[0]) && is_file($files[0])) {
+            @chmod($files[0], 0644);
+            return $files[0];
+        }
+    } catch (Throwable $e) {
+        error_log('ivr: TTS generation failed: ' . $e->getMessage());
+    }
+
+    return '';
+}
+
+/**
+ * Return the TTS prompt as a filename relative to the Asterisk sounds
+ * directory (without extension), which is what Background() expects.
+ */
+function ivr_tts_prompt_filename($text, $lang = '') {
+    global $amp_conf;
+
+    $file = ivr_tts_prompt_file($text, $lang);
+    if ($file === '') {
+        return '';
+    }
+
+    $astdatadir = !empty($amp_conf['ASTDATADIR']) ? $amp_conf['ASTDATADIR'] : '/var/lib/asterisk';
+    $sounds = rtrim($astdatadir, '/') . '/sounds/';
+    if (strpos($file, $sounds) !== 0) {
+        // Fall back to the standard marker when amportal.conf is not loaded.
+        $marker = '/sounds/';
+        $pos = strpos($file, $marker);
+        if ($pos === false) {
+            error_log('ivr: TTS file is outside the sounds directory: ' . $file);
+            return '';
+        }
+        $file = substr($file, $pos + strlen($marker));
+    } else {
+        $file = substr($file, strlen($sounds));
+    }
+
+    return preg_replace('/\.[^.]+$/', '', $file);
+}
+
 //dialplan generator
 function ivr_get_config($engine) {
     global $ext, $amp_conf, $astman;
@@ -102,6 +224,12 @@ function ivr_get_config($engine) {
                 $ext->add($c, 's', '', new ext_wait('1'));
 
                 $ivr_announcement = recordings_get_file($ivr['announcement']);
+                if (empty($ivr['announcement']) && isset($ivr['tts_text']) && trim((string)$ivr['tts_text']) !== '') {
+                    $tts_prompt = ivr_tts_prompt_filename($ivr['tts_text'], isset($ivr['tts_lang']) ? $ivr['tts_lang'] : '');
+                    if ($tts_prompt !== '') {
+                        $ivr_announcement = $tts_prompt;
+                    }
+                }
                 $ext->add($c, 's', 'skip', new ext_set('IVR_MSG', $ivr_announcement));
 
                 $ext->add($c, 's', 'start', new ext_digittimeout(3));
@@ -333,6 +461,8 @@ function ivr_get_config($engine) {
 function ivr_get_details($id = '') {
     global $db;
 
+    ivr_check_alter_table();
+
     $sql = "SELECT `spoken` FROM ivr_entries";
     $check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
     if(DB::IsError($check)) {
@@ -387,7 +517,7 @@ function ivr_configpageload() {
                     'invalid_recording', 'invalid_destination', 'invalid_ivr_ret',
                     'timeout_loops', 'timeout_time', 'timeout_retry_recording',
                     'timeout_recording', 'timeout_destination', 'timeout_ivr_ret',
-                    'retvm');
+                    'retvm', 'tts_text', 'tts_lang');
 
         //keep vairables set on new ivr's
         foreach ($deet as $d) {
@@ -434,6 +564,8 @@ function ivr_configpageload() {
                 'directdial'=>0,
                 'timeout_time'=>10,
                 'invalid_loops'=>3,
+                'tts_text'=>'',
+                'tts_lang'=>'',
                 'id'=>''
             );
 
@@ -480,10 +612,60 @@ function ivr_configpageload() {
         $currentcomponent->addoptlistitem('ivr_repeat_loops', $i, $i);
     }
 
+    // Text to Speech greeting. It is only used when no recording is selected.
+    $tts_options = (function_exists('issabel_tts_enabled') && issabel_tts_enabled() && function_exists('issabel_tts_language_options'))
+        ? issabel_tts_language_options() : array();
+
     //greating to be played on entry to the ivr
     $currentcomponent->addguielem($section,
         new gui_selectbox('announcement', $currentcomponent->getoptlist('recordings'),
-            $ivr['announcement'], __('Announcement'), __('Greeting to be played on entry to the Ivr.'), false));
+            $ivr['announcement'], __('Announcement'), __('Greeting to be played on entry to the Ivr.'), false,
+            !empty($tts_options) ? 'ivrToggleTts();' : ''));
+
+    if (!empty($tts_options)) {
+        $tts_lang = isset($ivr['tts_lang']) ? (string)$ivr['tts_lang'] : '';
+        if ($tts_lang === '' || !isset($tts_options[$tts_lang])) {
+            $tts_lang = function_exists('issabel_tts_default_lang') ? issabel_tts_default_lang() : 'en-US';
+        }
+        if (!isset($tts_options[$tts_lang])) {
+            $tts_codes = array_keys($tts_options);
+            $tts_lang = $tts_codes[0];
+        }
+        $tts_text = isset($ivr['tts_text']) ? (string)$ivr['tts_text'] : '';
+
+        $currentcomponent->addoptlist('tts_langs', false);
+        foreach ($tts_options as $code => $label) {
+            $currentcomponent->addoptlistitem('tts_langs', $code, $label);
+        }
+
+        $currentcomponent->addguielem($section,
+            new guielement('tts_heading', '<tr><td colspan="2"><br><h5>' . __('Text to Speech') . '</h5></td></tr>'));
+
+        $currentcomponent->addguielem($section,
+            new gui_selectbox('tts_lang', $currentcomponent->getoptlist('tts_langs'),
+                $tts_lang, __('Language'), __('Language used for the text to speech greeting.'), false));
+
+        $currentcomponent->addguielem($section,
+            new gui_textarea('tts_text', $tts_text, __('Text'),
+                __('Text to be spoken when no recording is selected. The audio is generated by the system TTS engine.')));
+
+        $tts_script = <<<'JS'
+<tr><td colspan="2">
+<script>
+function ivrToggleTts() {
+    var hasRecording = $('#announcement').val() !== '' && $('#announcement').val() !== null;
+    $('#tts_lang').prop('disabled', hasRecording).trigger('chosen:updated');
+    $('#tts_text').prop('disabled', hasRecording);
+}
+$(function () {
+    $('#announcement').on('change', ivrToggleTts);
+    ivrToggleTts();
+});
+</script>
+</td></tr>
+JS;
+        $currentcomponent->addguielem($section, new guielement('tts_script', $tts_script));
+    }
 
 
 
@@ -616,6 +798,28 @@ function ivr_configprocess(){
         $action        = isset($_REQUEST['action'])    ? $_REQUEST['action']    : '';
         $entries    = isset($_REQUEST['entries'])    ? $_REQUEST['entries']    : '';
 
+        // The TTS fields are disabled when a recording is selected, so they are
+        // not submitted. Preserve the stored values instead of clearing them.
+        $vars['tts_text'] = (isset($_REQUEST['tts_text']) && is_string($_REQUEST['tts_text'])) ? $_REQUEST['tts_text'] : null;
+        $vars['tts_lang'] = (isset($_REQUEST['tts_lang']) && is_string($_REQUEST['tts_lang'])) ? $_REQUEST['tts_lang'] : null;
+        if ($vars['tts_text'] === null || $vars['tts_lang'] === null) {
+            $existing = (!empty($vars['extdisplay']) && $action !== 'delete')
+                ? ivr_get_details($vars['extdisplay']) : array();
+            if ($vars['tts_text'] === null) {
+                $vars['tts_text'] = isset($existing['tts_text']) ? $existing['tts_text'] : '';
+            }
+            if ($vars['tts_lang'] === null) {
+                $vars['tts_lang'] = isset($existing['tts_lang']) ? $existing['tts_lang'] : '';
+            }
+        }
+        $vars['tts_text'] = trim((string)$vars['tts_text']);
+        if (function_exists('issabel_tts_normalize_lang')) {
+            $default_lang = function_exists('issabel_tts_default_lang') ? issabel_tts_default_lang() : 'en-US';
+            $vars['tts_lang'] = issabel_tts_normalize_lang((string)$vars['tts_lang'], $default_lang);
+        } else {
+            $vars['tts_lang'] = trim((string)$vars['tts_lang']);
+        }
+
         switch ($action) {
             case 'save':
                 //get real dest
@@ -628,6 +832,15 @@ function ivr_configprocess(){
                 $_SESSION['msg']=base64_encode(_dgettext('amp','Item has been saved'));
                 $_SESSION['msgtype']='success';
                 $_SESSION['msgtstamp']=time();
+                if (function_exists('issabel_tts_enabled') && issabel_tts_enabled()
+                    && empty($vars['announcement']) && trim((string)$vars['tts_text']) !== '') {
+                    $tts_prompt = ivr_tts_prompt_filename($vars['tts_text'], $vars['tts_lang']);
+                    if ($tts_prompt === '') {
+                        $_SESSION['msg'] = base64_encode(__('The IVR was saved, but the TTS prompt could not be generated. Check that Piper and the selected voice are installed.'));
+                        $_SESSION['msgtype'] = 'warning';
+                        $_SESSION['msgtstamp'] = time();
+                    }
+                }
                 redirect_standard_continue('extdisplay');
             break;
             case 'delete':
@@ -646,6 +859,8 @@ function ivr_configprocess(){
 function ivr_save_details($vals){
     global $db, $amp_conf;
 
+    ivr_check_alter_table();
+
     foreach($vals as $key => $value) {
         $vals[$key] = $db->escapeSimple($value);
     }
@@ -656,8 +871,9 @@ function ivr_save_details($vals){
                 invalid_destination, invalid_recording,
                 retvm, timeout_time, timeout_recording,
                 timeout_retry_recording, timeout_destination, timeout_loops,
-                timeout_append_announce, invalid_append_announce, timeout_ivr_ret, invalid_ivr_ret)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                timeout_append_announce, invalid_append_announce, timeout_ivr_ret, invalid_ivr_ret,
+                tts_text, tts_lang)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $foo = $db->query($sql, $vals);
         if($db->IsError($foo)) {
             die_issabelpbx(print_r($vals,true).' '.$foo->getDebugInfo());
@@ -669,8 +885,9 @@ function ivr_save_details($vals){
                 invalid_destination,  invalid_recording,
                 retvm, timeout_time, timeout_recording,
                 timeout_retry_recording, timeout_destination, timeout_loops,
-                timeout_append_announce, invalid_append_announce, timeout_ivr_ret, invalid_ivr_ret)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                timeout_append_announce, invalid_append_announce, timeout_ivr_ret, invalid_ivr_ret,
+                tts_text, tts_lang)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
         $foo = $db->query($sql, $vals);
         if($db->IsError($foo)) {

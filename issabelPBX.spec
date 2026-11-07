@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        27
+Release:        28
 Summary:        issabelPBX
 
 License:        GPL
@@ -111,6 +111,12 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Sat Nov 07 2026 Issabel Foundation <info@issabel.org> - 2.13.0-28
+- Add Text to Speech support to the IVR greeting. The prompt is generated as a
+  cached audio file in custom/tts when the IVR is saved or the dialplan is
+  applied, so Background/SpeechBackground and the retry announcements keep
+  working without per-call synthesis.
+
 * Fri Nov 06 2026 Issabel Foundation <info@issabel.org> - 2.13.0-27
 - Make the Piper language selectable from the TTS, recordings and announcement
   GUIs without entering a .onnx file name. The shared voices.json catalog
