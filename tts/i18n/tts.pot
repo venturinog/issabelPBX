@@ -85,3 +85,42 @@ msgstr ""
 
 msgid "The Text to Speech module allows you to add text to speech (TTS) instances on your PBX. You enter text to be read by a computer voice. When a TTS instance is entered as a destination in your call path, the system will play the text entered using the selected TTS engine. Then the call will then continue on to the target destination defined in the instance."
 msgstr ""
+
+msgid "Language"
+msgstr ""
+
+msgid "Language / Voice"
+msgstr ""
+
+msgid "Use engine default"
+msgstr ""
+
+msgid "Custom / advanced JSON"
+msgstr ""
+
+msgid "The Piper voice used by this engine. The model file is selected automatically; you do not need to enter a file name."
+msgstr ""
+
+msgid "The Piper voice used for this entry. The engine default is used when no language is selected."
+msgstr ""
+
+msgid "The Piper voice used for this recording. The engine default is used when no language is selected."
+msgstr ""
+
+msgid "Spanish (Mexico)"
+msgstr ""
+
+msgid "English (United States)"
+msgstr ""
+
+msgid "Portuguese (Brazil)"
+msgstr ""
+
+msgid "French (France)"
+msgstr ""
+
+msgid "Italian (Italy)"
+msgstr ""
+
+msgid "German (Germany)"
+msgstr ""

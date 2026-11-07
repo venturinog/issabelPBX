@@ -105,3 +105,42 @@ msgstr "El módulo Texto al Habla le permite agregar instancias de texto a voz (
 
 msgid "The actual text to be spoken by the engine. You can use channel variables in the format %{variable}."
 msgstr "El texto real que va a pronunciar el motor. Puede utilizar variables de canal con el formato %{variable}."
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Language / Voice"
+msgstr "Idioma / Voz"
+
+msgid "Use engine default"
+msgstr "Usar el idioma del motor"
+
+msgid "Custom / advanced JSON"
+msgstr "Personalizado / JSON avanzado"
+
+msgid "The Piper voice used by this engine. The model file is selected automatically; you do not need to enter a file name."
+msgstr "La voz de Piper usada por este motor. El archivo del modelo se selecciona automáticamente; no es necesario escribir el nombre del archivo."
+
+msgid "The Piper voice used for this entry. The engine default is used when no language is selected."
+msgstr "La voz de Piper usada para esta entrada. Se usa la del motor cuando no se selecciona un idioma."
+
+msgid "The Piper voice used for this recording. The engine default is used when no language is selected."
+msgstr "La voz de Piper usada para esta grabación. Se usa la del motor cuando no se selecciona un idioma."
+
+msgid "Spanish (Mexico)"
+msgstr "Español (México)"
+
+msgid "English (United States)"
+msgstr "Inglés (Estados Unidos)"
+
+msgid "Portuguese (Brazil)"
+msgstr "Portugués (Brasil)"
+
+msgid "French (France)"
+msgstr "Francés (Francia)"
+
+msgid "Italian (Italy)"
+msgstr "Italiano (Italia)"
+
+msgid "German (Germany)"
+msgstr "Alemán (Alemania)"

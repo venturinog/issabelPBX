@@ -38,6 +38,26 @@ function tts_get_config($engine) {
                 $cur_engine = $row['tts_engine'];
                 $cmd    = isset($tts_cmd[$cur_engine]) ? $tts_cmd[$cur_engine] : '';
                 $params = isset($tts_template[$cur_engine]) ? $tts_template[$cur_engine] : '';
+                $entry  = isset($row['tts_parameters']) ? trim((string)$row['tts_parameters']) : '';
+                if ($entry !== '') {
+                    $base = json_decode((string)$params, true);
+                    $over = json_decode((string)$entry, true);
+                    if (!is_array($base)) {
+                        $base = array();
+                    }
+                    if (is_array($over)) {
+                        $merged = array_merge($base, $over);
+                        // The per-entry language must win over a legacy voice
+                        // file in the engine template.
+                        if (!empty($over['lang'])) {
+                            unset($merged['voice']);
+                        }
+                        $encoded = json_encode($merged);
+                        if ($encoded !== false) {
+                            $params = $encoded;
+                        }
+                    }
+                }
                 $args = issabel_tts_agi_args($row['tts_text'], array(
                     'engine' => $cur_engine,
                     'cmd'    => $cmd,
@@ -59,7 +79,7 @@ function tts_get_config($engine) {
 /**  Get a list of all tts entries */
 function tts_list() {
     global $db;
-    $sql = "SELECT tts_id, tts_description, tts_engine, tts_text, dest FROM tts ORDER BY tts_description ";
+    $sql = "SELECT tts_id, tts_description, tts_engine, tts_parameters, tts_text, dest FROM tts ORDER BY tts_description ";
     $results = $db->getAll($sql, DB_FETCHMODE_ASSOC);
     if($db->IsError($results)) {
         die_issabelpbx($results->getMessage()."<br><br>Error selecting from tts");
@@ -97,7 +117,7 @@ function tts_destinations() {
 
 function tts_get($tts_id) {
     global $db;
-    $sql = "SELECT tts_id, tts_description, tts_text, tts_engine, dest FROM tts WHERE tts_id = ".$db->escapeSimple($tts_id);
+    $sql = "SELECT tts_id, tts_description, tts_text, tts_engine, tts_parameters, dest FROM tts WHERE tts_id = ".$db->escapeSimple($tts_id);
     $row = $db->getRow($sql, DB_FETCHMODE_ASSOC);
     if($db->IsError($row)) {
         die_issabelpbx($row->getMessage()."<br><br>Error selecting row from tts");
@@ -118,11 +138,12 @@ function ttsengine_get($ttsengine_id) {
 }
 
 
-function tts_add($description, $tts_engine, $tts_text, $dest) {
+function tts_add($description, $tts_engine, $tts_text, $dest, $tts_parameters = '') {
     global $db;
-    $sql = "INSERT INTO tts (tts_description, tts_engine, tts_text, dest) VALUES (".
+    $sql = "INSERT INTO tts (tts_description, tts_engine, tts_parameters, tts_text, dest) VALUES (".
         "'".$db->escapeSimple($description)."', ".
         "'".$db->escapeSimple($tts_engine)."', ".
+        "'".$db->escapeSimple($tts_parameters)."', ".
         "'".$db->escapeSimple($tts_text)."',".
         "'".$db->escapeSimple($dest)."')";
     $result = $db->query($sql);
@@ -162,11 +183,12 @@ function tts_delete($tts_id) {
     }
 }
 
-function tts_edit($tts_id, $description, $tts_engine, $tts_text, $dest) {
+function tts_edit($tts_id, $description, $tts_engine, $tts_text, $dest, $tts_parameters = '') {
     global $db;
     $sql = "UPDATE tts SET ".
         "tts_description = '".$db->escapeSimple($description)."', ".
         "tts_engine = '".$db->escapeSimple($tts_engine)."', ".
+        "tts_parameters = '".$db->escapeSimple($tts_parameters)."', ".
         "tts_text = '".$db->escapeSimple($tts_text)."', ".
         "dest = '".$db->escapeSimple($dest)."' ".
         "WHERE tts_id = ".$db->escapeSimple($tts_id);

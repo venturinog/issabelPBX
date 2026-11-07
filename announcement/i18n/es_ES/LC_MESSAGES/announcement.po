@@ -179,3 +179,21 @@ msgid "Text"
 msgstr "Texto"
 
 
+
+msgid "Spanish (Mexico)"
+msgstr "Español (México)"
+
+msgid "English (United States)"
+msgstr "Inglés (Estados Unidos)"
+
+msgid "Portuguese (Brazil)"
+msgstr "Portugués (Brasil)"
+
+msgid "French (France)"
+msgstr "Francés (Francia)"
+
+msgid "Italian (Italy)"
+msgstr "Italiano (Italia)"
+
+msgid "German (Germany)"
+msgstr "Alemán (Alemania)"

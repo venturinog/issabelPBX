@@ -28,10 +28,24 @@ if (isset($_REQUEST['delete'])) $action = 'delete';
 $tts_id         = isset($_REQUEST['tts_id']) ? $_REQUEST['tts_id'] :  false;
 $description    = isset($_REQUEST['description']) ? $_REQUEST['description'] :  '';
 $tts_engine     = isset($_REQUEST['tts_engine']) ? $_REQUEST['tts_engine'] :  '';
+$tts_parameters = (isset($_REQUEST['tts_parameters']) && is_string($_REQUEST['tts_parameters'])) ? $_REQUEST['tts_parameters'] :  '';
+$tts_lang       = (isset($_REQUEST['tts_lang']) && is_string($_REQUEST['tts_lang'])) ? $_REQUEST['tts_lang'] :  '';
 $tts_text       = isset($_REQUEST['tts_text']) ? $_REQUEST['tts_text'] :  '';
 $dest           = isset($_REQUEST['dest']) ? $_REQUEST['dest'] :  '';
 
 if(!isset($tabindex)) $tabindex=1;
+
+if ($tts_engine === 'piper') {
+    // Keep any other parameter already stored in the column and set/remove
+    // only the language override. A previous voice file must not keep priority
+    // over the language chosen in the form.
+    $params = json_decode((string)$tts_parameters, true);
+    if (!is_array($params)) {
+        $params = array();
+    }
+    unset($params['voice']);
+    $tts_parameters = issabel_tts_merge_params($params, $tts_lang);
+}
 
 if (isset($_REQUEST['goto0']) && $_REQUEST['goto0']) {
     $dest = $_REQUEST[ $_REQUEST['goto0'] ];
@@ -39,7 +53,7 @@ if (isset($_REQUEST['goto0']) && $_REQUEST['goto0']) {
 
 switch ($action) {
     case 'add':
-        tts_add($description, $tts_engine, $tts_text, $dest);
+        tts_add($description, $tts_engine, $tts_text, $dest, $tts_parameters);
         needreload();
         $_SESSION['msg']=base64_encode(_dgettext('amp','Item has been added'));
         $_SESSION['msgtype']='success';
@@ -47,7 +61,7 @@ switch ($action) {
         redirect_standard();
     break;
     case 'edit':
-        tts_edit($tts_id, $description, $tts_engine, $tts_text, $dest);
+        tts_edit($tts_id, $description, $tts_engine, $tts_text, $dest, $tts_parameters);
         needreload();
         $_SESSION['msg']=base64_encode(_dgettext('amp','Item has been saved'));
         $_SESSION['msgtype']='success';
@@ -79,6 +93,8 @@ if ($extdisplay) {
     $row = tts_get($extdisplay);
     $description    = $row['tts_description'];
     $tts_engine     = htmlspecialchars($row['tts_engine']);
+    $tts_parameters = isset($row['tts_parameters']) ? $row['tts_parameters'] : '';
+    $tts_lang       = issabel_tts_lang_from_params($tts_parameters);
     $tts_text       = htmlspecialchars($row['tts_text']);
     $dest           = $row['dest'];
 } 
@@ -99,6 +115,7 @@ if (!empty($usage_list)) {
     <input type="hidden" name="extdisplay" value="<?php echo $extdisplay; ?>">
     <input type="hidden" name="tts_id" value="<?php echo $extdisplay; ?>">
     <input type="hidden" name="action" value="<?php echo ($extdisplay ? 'edit' : 'add'); ?>">
+    <input type="hidden" name="tts_parameters" value="<?php echo htmlspecialchars((string)$tts_parameters, ENT_QUOTES, 'UTF-8'); ?>">
     <table class='table is-fullwidth is-narrow is-borderless'>
     <tr><td colspan="2"><h5><?php echo _dgettext('amp','General Settings');?></h5></td></tr>
     <tr>
@@ -124,6 +141,19 @@ if (!empty($usage_list)) {
 
 
     </tr>
+    <tr id="ttslangrow">
+        <td><a href="#" class="info"><?php echo __("Language")?><span><?php echo __("The Piper voice used for this entry. The engine default is used when no language is selected.");?></span></a></td>
+        <td>
+            <select name="tts_lang" id="tts_lang" tabindex="<?php echo ++$tabindex;?>" class='componentSelect'>
+                <option value=""><?php echo __("Use engine default"); ?></option>
+                <?php
+                foreach (issabel_tts_language_options() as $code => $label) {
+                    echo '<option value="'.htmlspecialchars($code, ENT_QUOTES, 'UTF-8').'"'.($code == $tts_lang ? ' SELECTED' : '').'>'.htmlspecialchars($label, ENT_QUOTES, 'UTF-8')."</option>\n";
+                }
+                ?>
+            </select>
+        </td>
+    </tr>
     <tr>
         <td><a href="#" class="info"><?php echo __("Text")?><span><?php echo __("The actual text to be spoken by the engine. You can use channel variables in the format %{variable}.");?></span></a></td>
         <td><textarea name="tts_text" class="textarea" tabindex="<?php echo ++$tabindex;?>"/><?php echo $tts_text; ?></textarea></td>
@@ -141,11 +171,17 @@ echo drawselects($dest,0);
 </form>
 
 <script>
+function toggleTtsLanguage() {
+    $('#ttslangrow').toggle($('[name=tts_engine]').val() === 'piper');
+}
+
 $(function () {
 
   if (!$('[name=description]').attr("value")) {
       $('[name=tts_engine]').attr({value: "piper"});
   }
+  $('[name=tts_engine]').on('change', toggleTtsLanguage);
+  toggleTtsLanguage();
 
 });
 

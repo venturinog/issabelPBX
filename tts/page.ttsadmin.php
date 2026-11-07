@@ -30,7 +30,23 @@ $description           = isset($_REQUEST['description']) ? $_REQUEST['descriptio
 $ttsengine_engine      = isset($_REQUEST['ttsengine_engine']) ? $_REQUEST['ttsengine_engine'] :  '';
 $ttsengine_cmd         = isset($_REQUEST['ttsengine_cmd']) ? $_REQUEST['ttsengine_cmd'] :  '';
 $ttsengine_template    = isset($_REQUEST['ttsengine_template']) ? $_REQUEST['ttsengine_template'] :  '';
+$piper_lang            = (isset($_REQUEST['piper_lang']) && is_string($_REQUEST['piper_lang'])) ? $_REQUEST['piper_lang'] :  '';
+$piper_default_lang    = function_exists('issabel_tts_default_lang') ? issabel_tts_default_lang() : 'en-US';
 
+if ($ttsengine_engine === 'piper' && $piper_lang !== '' && $piper_lang !== 'custom') {
+    $decoded = json_decode((string)$ttsengine_template, true);
+    if (!is_array($decoded)) {
+        $decoded = array();
+    }
+    unset($decoded['voice']);
+    $ttsengine_template = issabel_tts_merge_params($decoded, $piper_lang);
+} elseif ($ttsengine_engine === 'piper' && $piper_lang === 'custom') {
+    $decoded = json_decode((string)$ttsengine_template, true);
+    if (!is_array($decoded)) {
+        $ttsengine_template = issabel_tts_merge_params('', $piper_default_lang);
+        $piper_lang = $piper_default_lang;
+    }
+}
 
 $templates = array(
 'polly'=>'{
@@ -40,9 +56,7 @@ $templates = array(
     "Engine": "neural|standard",
     "VoiceId": ""
 }',
-'piper'=>'{
-   "voice": "es_MX-claude-high.onnx"
-}',
+'piper'=>json_encode(array('lang' => $piper_default_lang)),
 'azure'=>'{
     "gender":"Female",
     "lang":"es-MX",
@@ -129,6 +143,30 @@ if ($extdisplay) {
     $ttsengine_engine     = htmlspecialchars($row['ttsengine_engine']);
     $ttsengine_template   = htmlspecialchars($row['ttsengine_template']);
     $ttsengine_cmd        = htmlspecialchars($row['ttsengine_cmd']);
+    if ($ttsengine_engine === 'piper') {
+        $rawText = trim((string)$row['ttsengine_template']);
+        $raw = json_decode($rawText, true);
+        $custom_voice = false;
+        if (is_array($raw) && !empty($raw['voice']) && is_string($raw['voice'])) {
+            $voice_file = basename($raw['voice']);
+            if (issabel_tts_lang_for_voice($voice_file) === '') {
+                $custom_voice = is_readable(issabel_tts_voice_dir() . '/' . $voice_file);
+            }
+        }
+        if ($custom_voice) {
+            $piper_lang = 'custom';
+        } else {
+            $piper_lang = issabel_tts_lang_from_params($rawText);
+            if ($piper_lang === '') {
+                $piper_lang = ($rawText !== '' && $rawText !== '{}' && $rawText !== '[]')
+                    ? 'custom' : $piper_default_lang;
+            }
+        }
+    }
+} else {
+    if ($piper_lang === '') {
+        $piper_lang = $piper_default_lang;
+    }
 }
 
 $helptext = __("The Text To Speech Engine module allows you to add different engines to convert text to speech");
@@ -163,10 +201,23 @@ echo "</h2>$help</div>";
 
         </td>
     </tr>
+    <tr id="piperlangrow">
+        <td><a href="#" class="info"><?php echo __("Language / Voice")?><span><?php echo __("The Piper voice used by this engine. The model file is selected automatically; you do not need to enter a file name.");?></span></a></td>
+        <td>
+            <select name="piper_lang" id="piper_lang" tabindex="<?php echo ++$tabindex;?>" class='componentSelect'>
+                <?php
+                foreach (issabel_tts_language_options() as $code => $label) {
+                    echo '<option value="'.htmlspecialchars($code, ENT_QUOTES, 'UTF-8').'"'.($code == $piper_lang ? ' SELECTED' : '').'>'.htmlspecialchars($label, ENT_QUOTES, 'UTF-8')."</option>\n";
+                }
+                ?>
+                <option value="custom"<?php echo ($piper_lang === 'custom' ? ' SELECTED' : ''); ?>><?php echo __("Custom / advanced JSON"); ?></option>
+            </select>
+        </td>
+    </tr>
     <tr id='templatecell'>
         <td colspan=2><a href="#" class="info"><?php echo __("Template")?><span><?php echo __("Set of key=value pairs needed for the TTS engine. Usually API credentials, voice name, etc.");?></span></a></td>
    </tr>
-   <tr>
+   <tr id="templaterow">
         <td colspan=2><textarea id="ttstext" class='textarea' style='width:100px; height:10rem;' name="ttsengine_template" tabindex="<?php echo ++$tabindex;?>"><?php echo $ttsengine_template; ?></textarea></td>
     </tr>
     <tr>
@@ -180,11 +231,20 @@ echo "</h2>$help</div>";
 
 <script>
                 
+function togglePiperOptions() {
+  var isPiper = $('#ttsengine_engine').val() === 'piper';
+  var isCustom = $('#piper_lang').val() === 'custom';
+  $('#piperlangrow').toggle(isPiper);
+  $('#templatecell, #templaterow').toggle(!isPiper || isCustom);
+}
+
 $(function () {
 
   if (!$('[name=description]').attr("value")) {
       $('[name=ttsengine_engine]').attr({value: "piper"});
   }
+  $('#ttsengine_engine, #piper_lang').on('change', togglePiperOptions);
+  togglePiperOptions();
   //$('#container').width($('#container').width() - $('.rnav').width() - 20).css('margin-left','-10px');
 
   

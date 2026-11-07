@@ -48,6 +48,7 @@ class issabelTtsEngine
         'es' => 'es_MX-claude-high.onnx',
         'en' => 'en_US-ljspeech-medium.onnx',
         'pt' => 'pt_BR-faber-medium.onnx',
+        'br' => 'pt_BR-faber-medium.onnx',
         'fr' => 'fr_FR-siwis-medium.onnx',
         'it' => 'it_IT-paola-medium.onnx',
         'de' => 'de_DE-thorsten-medium.onnx',
@@ -56,6 +57,7 @@ class issabelTtsEngine
     private $agi;
     private $cfg;
     private static $amportal = null;
+    private static $catalog = null;
 
     public function __construct($agi = null)
     {
@@ -423,20 +425,190 @@ class issabelTtsEngine
 
     private function voiceFor($params)
     {
-        $voice = isset($params['voice']) ? basename((string)$params['voice']) : '';
-        if ($voice === '') {
-            $lang = isset($params['lang']) ? strtolower((string)$params['lang']) : '';
-            if (preg_match('/^([a-z]{2})/', $lang, $m) && isset(self::$voiceMap[$m[1]])) {
-                $voice = self::$voiceMap[$m[1]];
+        $voice = (isset($params['voice']) && is_string($params['voice'])) ? basename($params['voice']) : '';
+        if ($voice !== '') {
+            $voice = $this->withExtension($voice);
+            if (is_readable($this->cfg['voice_dir'] . '/' . $voice)) {
+                return $voice;
             }
+            $this->log('Piper voice model not found: ' . $voice . '; trying lang/default');
+            $voice = '';
+        }
+
+        if ($voice === '') {
+            $lang = (isset($params['lang']) && is_string($params['lang'])) ? $params['lang'] : '';
+            $voice = $this->voiceForLang($lang);
+        }
+        if ($voice === '') {
+            $default = $this->cfg['default_lang'];
+            if (strtolower((string)$default) === 'auto' || $default === '') {
+                $default = $this->guiLanguage();
+            }
+            $voice = $this->voiceForLang($default);
+        }
+        if ($voice === '') {
+            $voice = $this->voiceForLang('en-US');
         }
         if ($voice === '') {
             $voice = $this->cfg['default_voice'];
         }
-        if (substr($voice, -5) !== '.onnx') {
-            $voice .= '.onnx';
+
+        $voice = $this->withExtension($voice);
+
+        // A missing model must not leave the call in silence. Try the default
+        // voice and log the problem; the caller still gets a clear error if the
+        // default is missing too.
+        if (!is_readable($this->cfg['voice_dir'] . '/' . $voice)) {
+            $fallback = $this->withExtension($this->cfg['default_voice']);
+            $this->log('Piper voice model not found: ' . $voice . '; falling back to ' . $fallback);
+            $voice = $fallback;
         }
+
         return $voice;
+    }
+
+    private function withExtension($voice)
+    {
+        $voice = (string)$voice;
+        if ($voice === '') {
+            return '';
+        }
+        return substr($voice, -5) === '.onnx' ? $voice : $voice . '.onnx';
+    }
+
+    private function voiceForLang($lang)
+    {
+        $lang = strtolower(trim((string)$lang));
+        if ($lang === '' || $lang === 'auto') {
+            return '';
+        }
+        $lang = str_replace('_', '-', $lang);
+
+        $catalog = self::loadCatalog();
+        $voices = isset($catalog['voices']) && is_array($catalog['voices']) ? $catalog['voices'] : array();
+        $aliases = isset($catalog['aliases']) && is_array($catalog['aliases']) ? $catalog['aliases'] : array();
+
+        foreach ($voices as $code => $voice) {
+            if (strtolower($code) === $lang && !empty($voice['file'])) {
+                return basename($voice['file']);
+            }
+        }
+        foreach ($aliases as $alias => $code) {
+            if (strtolower($alias) === $lang && isset($voices[$code]['file'])) {
+                return basename($voices[$code]['file']);
+            }
+        }
+
+        $prefix = substr($lang, 0, 2);
+        if ($prefix !== '') {
+            foreach ($aliases as $alias => $code) {
+                if (strtolower($alias) === $prefix && isset($voices[$code]['file'])) {
+                    return basename($voices[$code]['file']);
+                }
+            }
+            foreach ($voices as $code => $voice) {
+                if (strtolower(substr($code, 0, 2)) === $prefix && !empty($voice['file'])) {
+                    return basename($voice['file']);
+                }
+            }
+            if (isset(self::$voiceMap[$prefix])) {
+                return self::$voiceMap[$prefix];
+            }
+        }
+
+        return '';
+    }
+
+    /**
+     * System/GUI language from the legacy settings database. The AGI runs as
+     * asterisk and the file is world-readable, so this does not need a web
+     * session or a writable configuration file. When it is unavailable the
+     * caller falls back to DEFAULT_VOICE.
+     */
+    private function guiLanguage()
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+        $settings_db = '/var/www/db/settings.db';
+        if (is_readable($settings_db) && class_exists('PDO')) {
+            try {
+                $pdo = new PDO('sqlite:' . $settings_db);
+                $stmt = $pdo->query("SELECT value FROM settings WHERE key = 'language' LIMIT 1");
+                $lang = $stmt ? $stmt->fetchColumn() : '';
+                if (!empty($lang)) {
+                    $cache = $lang;
+                    return $cache;
+                }
+            } catch (Exception $e) {
+                // Fall through to the default voice.
+            }
+        }
+        $cache = '';
+        return $cache;
+    }
+
+    private static function loadCatalog()
+    {
+        if (self::$catalog !== null) {
+            return self::$catalog;
+        }
+
+        $fallback = array(
+            'aliases' => array(
+                'en' => 'en-US', 'en-GB' => 'en-US',
+                'es' => 'es-MX', 'es-ES' => 'es-MX',
+                'pt' => 'pt-BR', 'pt-PT' => 'pt-BR', 'br' => 'pt-BR',
+                'fr' => 'fr-FR', 'it' => 'it-IT', 'de' => 'de-DE',
+            ),
+            'voices' => array(
+                'es-MX' => array('file' => 'es_MX-claude-high.onnx'),
+                'en-US' => array('file' => 'en_US-ljspeech-medium.onnx'),
+                'pt-BR' => array('file' => 'pt_BR-faber-medium.onnx'),
+                'fr-FR' => array('file' => 'fr_FR-siwis-medium.onnx'),
+                'it-IT' => array('file' => 'it_IT-paola-medium.onnx'),
+                'de-DE' => array('file' => 'de_DE-thorsten-medium.onnx'),
+            ),
+        );
+
+        $path = '/etc/issabel/piper.conf';
+        $catalog = '';
+        if (is_readable($path)) {
+            $ini = @parse_ini_file($path, true, INI_SCANNER_RAW);
+            if (is_array($ini) && isset($ini['paths']['catalog']) && $ini['paths']['catalog'] !== '') {
+                $catalog = $ini['paths']['catalog'];
+            }
+        }
+        if ($catalog === '') {
+            $catalog = '/usr/share/issabel-piper/voices.json';
+        }
+
+        if (is_readable($catalog)) {
+            $json = @file_get_contents($catalog);
+            if ($json !== false) {
+                $data = json_decode($json, true);
+                if (is_array($data) && !empty($data['voices']) && is_array($data['voices'])) {
+                    if (!isset($data['aliases']) || !is_array($data['aliases'])) {
+                        $data['aliases'] = $fallback['aliases'];
+                    }
+                    self::$catalog = $data;
+                    return self::$catalog;
+                }
+            }
+        }
+
+        self::$catalog = $fallback;
+        return self::$catalog;
+    }
+
+    private function log($message)
+    {
+        if ($this->agi !== null && method_exists($this->agi, 'verbose')) {
+            @$this->agi->verbose($message, 3);
+        } else {
+            @error_log('issabel-tts: ' . $message);
+        }
     }
 
     private function formatFor($engine)
@@ -727,9 +899,11 @@ class issabelTtsEngine
             'piper'                  => '/usr/bin/piper',
             'sox'                    => '/usr/bin/sox',
             'voice_dir'              => '/usr/share/issabel-piper/voices',
+            'catalog'                => '/usr/share/issabel-piper/voices.json',
             'cache_dir'              => '/var/lib/asterisk/issabel-tts/cache',
             'locks_dir'              => '/var/lib/asterisk/issabel-tts',
             'default_voice'          => self::DEFAULT_VOICE,
+            'default_lang'           => 'auto',
             'pool_slots'             => 'auto',
             'pool_timeout'           => 20,
             'pool_per_slot_mb'       => 256,
@@ -743,10 +917,13 @@ class issabelTtsEngine
         if (is_readable($file)) {
             $ini = @parse_ini_file($file, true);
             if (is_array($ini)) {
-                foreach (array('piper', 'sox', 'voice_dir', 'cache_dir', 'locks_dir', 'default_voice') as $key) {
+                foreach (array('piper', 'sox', 'voice_dir', 'catalog', 'cache_dir', 'locks_dir', 'default_voice') as $key) {
                     if (isset($ini['paths'][$key]) && $ini['paths'][$key] !== '') {
                         $cfg[$key] = $ini['paths'][$key];
                     }
+                }
+                if (isset($ini['voice']['default_lang']) && $ini['voice']['default_lang'] !== '') {
+                    $cfg['default_lang'] = $ini['voice']['default_lang'];
                 }
                 $map = array(
                     'slots'             => 'pool_slots',

@@ -1,0 +1,338 @@
+#!/usr/bin/php
+<?php
+/* vim: set expandtab tabstop=4 softtabstop=4 shiftwidth=4:
+   Codificación: UTF-8
+   +----------------------------------------------------------------------+
+   | Issabel version 6.0                                                  |
+   | http://www.issabel.org                                               |
+   +----------------------------------------------------------------------+
+   | Copyright (c) 2026 Issabel Foundation                                |
+   +----------------------------------------------------------------------+
+   | The contents of this file are subject to the General Public License  |
+   | (GPL) Version 2 (the "License"); you may not use this file except in |
+   | compliance with the License. You may obtain a copy of the License at |
+   | http://www.opensource.org/licenses/gpl-license.php                   |
+   +----------------------------------------------------------------------+
+*/
+
+/**
+ * issabel-tts-voice - support CLI for the Issabel Piper voices.
+ *
+ *   issabel-tts-voice list
+ *   issabel-tts-voice test <code> "text"
+ *   issabel-tts-voice default [code]
+ *   issabel-tts-voice default --from-gui [--force]
+ *
+ * The GUI is the normal way to change the language. This tool exists for
+ * support, automation and headless installations; it never accepts an .onnx
+ * file name, only a catalog code.
+ */
+
+$CATALOG_FILE = '/usr/share/issabel-piper/voices.json';
+$CONFIG_FILE  = '/etc/issabel/piper.conf';
+$AGI_FILE     = '/var/lib/asterisk/agi-bin/issabel-tts.agi';
+
+function usage()
+{
+    $out = "Usage:\n"
+         . "  issabel-tts-voice list\n"
+         . "  issabel-tts-voice test <code> \"text\"\n"
+         . "  issabel-tts-voice default [code]\n"
+         . "  issabel-tts-voice default --from-gui [--force]\n";
+    fwrite(STDERR, $out);
+    exit(2);
+}
+
+function load_catalog($file)
+{
+    $fallback = array(
+        'aliases' => array(
+            'en' => 'en-US', 'en-GB' => 'en-US',
+            'es' => 'es-MX', 'es-ES' => 'es-MX',
+            'pt' => 'pt-BR', 'pt-PT' => 'pt-BR', 'br' => 'pt-BR',
+            'fr' => 'fr-FR', 'it' => 'it-IT', 'de' => 'de-DE',
+        ),
+        'voices' => array(
+            'es-MX' => array('file' => 'es_MX-claude-high.onnx', 'label' => 'Spanish (Mexico)', 'native' => 'Español (México)'),
+            'en-US' => array('file' => 'en_US-ljspeech-medium.onnx', 'label' => 'English (United States)', 'native' => 'English (United States)'),
+            'pt-BR' => array('file' => 'pt_BR-faber-medium.onnx', 'label' => 'Portuguese (Brazil)', 'native' => 'Português (Brasil)'),
+            'fr-FR' => array('file' => 'fr_FR-siwis-medium.onnx', 'label' => 'French (France)', 'native' => 'Français (France)'),
+            'it-IT' => array('file' => 'it_IT-paola-medium.onnx', 'label' => 'Italian (Italy)', 'native' => 'Italiano (Italia)'),
+            'de-DE' => array('file' => 'de_DE-thorsten-medium.onnx', 'label' => 'German (Germany)', 'native' => 'Deutsch (Deutschland)'),
+        ),
+    );
+    if (!is_readable($file)) {
+        return $fallback;
+    }
+    $data = json_decode(file_get_contents($file), true);
+    if (!is_array($data) || empty($data['voices']) || !is_array($data['voices'])) {
+        return $fallback;
+    }
+    if (!isset($data['aliases']) || !is_array($data['aliases'])) {
+        $data['aliases'] = $fallback['aliases'];
+    }
+    return $data;
+}
+
+function normalize_code($catalog, $lang, $fallback = '')
+{
+    $lang = strtolower(trim((string)$lang));
+    $lang = str_replace('_', '-', $lang);
+    if ($lang === '') {
+        return $fallback;
+    }
+    foreach ($catalog['voices'] as $code => $voice) {
+        if (strtolower($code) === $lang) {
+            return $code;
+        }
+    }
+    foreach ($catalog['aliases'] as $alias => $code) {
+        if (strtolower($alias) === $lang && isset($catalog['voices'][$code])) {
+            return $code;
+        }
+    }
+    $prefix = substr($lang, 0, 2);
+    foreach ($catalog['aliases'] as $alias => $code) {
+        if (strtolower($alias) === $prefix && isset($catalog['voices'][$code])) {
+            return $code;
+        }
+    }
+    foreach ($catalog['voices'] as $code => $voice) {
+        if (strtolower(substr($code, 0, 2)) === $prefix) {
+            return $code;
+        }
+    }
+    return $fallback;
+}
+
+function read_config($file)
+{
+    $cfg = array();
+    if (is_readable($file)) {
+        $ini = @parse_ini_file($file, true, INI_SCANNER_RAW);
+        if (is_array($ini)) {
+            $cfg = $ini;
+        }
+    }
+    return $cfg;
+}
+
+function current_default($file)
+{
+    $cfg = read_config($file);
+    return isset($cfg['voice']['default_lang']) ? trim((string)$cfg['voice']['default_lang']) : '';
+}
+
+function gui_language()
+{
+    $settings_db = '/var/www/db/settings.db';
+    if (is_file($settings_db) && class_exists('PDO')) {
+        try {
+            $pdo = new PDO('sqlite:' . $settings_db);
+            $stmt = $pdo->query("SELECT value FROM settings WHERE key = 'language' LIMIT 1");
+            $lang = $stmt ? $stmt->fetchColumn() : '';
+            if (!empty($lang)) {
+                return $lang;
+            }
+        } catch (Exception $e) {
+            // Fall through to the framework helper.
+        }
+    }
+
+    if (!empty($_COOKIE['lang']) && is_string($_COOKIE['lang'])) {
+        return $_COOKIE['lang'];
+    }
+    return 'en';
+}
+
+/**
+ * Update [voice] default_lang in place, preserving comments and the rest of
+ * the file. The write is atomic and leaves a .bak copy.
+ */
+function set_default($file, $code)
+{
+    if (!is_writable($file)) {
+        fwrite(STDERR, "Cannot write $file (run as root)\n");
+        return false;
+    }
+
+    $lines = file($file, FILE_IGNORE_NEW_LINES);
+    if ($lines === false) {
+        fwrite(STDERR, "Cannot read $file\n");
+        return false;
+    }
+
+    $in_voice = false;
+    $found_section = false;
+    $found_key = false;
+    $new = array();
+
+    foreach ($lines as $line) {
+        if (preg_match('/^\s*\[([^\]]+)\]\s*$/', $line, $m)) {
+            $in_voice = (strtolower(trim($m[1])) === 'voice');
+            if ($in_voice) {
+                $found_section = true;
+            }
+            $new[] = $line;
+            if ($in_voice && !$found_key) {
+                // The key is inserted immediately after the section header
+                // when it does not exist yet.
+            }
+            continue;
+        }
+        if ($in_voice && preg_match('/^\s*default_lang\s*=/i', $line)) {
+            $new[] = 'default_lang = ' . $code;
+            $found_key = true;
+            continue;
+        }
+        $new[] = $line;
+    }
+
+    if (!$found_section) {
+        if (!empty($new) && trim(end($new)) !== '') {
+            $new[] = '';
+        }
+        $new[] = '[voice]';
+        $new[] = 'default_lang = ' . $code;
+    } elseif (!$found_key) {
+        // Insert after the [voice] header.
+        $out = array();
+        foreach ($new as $line) {
+            $out[] = $line;
+            if (preg_match('/^\s*\[\s*voice\s*\]\s*$/i', $line)) {
+                $out[] = 'default_lang = ' . $code;
+            }
+        }
+        $new = $out;
+    }
+
+    $tmp = tempnam(dirname($file), 'piper.conf.');
+    if ($tmp === false) {
+        fwrite(STDERR, "Cannot create a temporary file next to $file\n");
+        return false;
+    }
+    if (file_put_contents($tmp, implode(PHP_EOL, $new) . PHP_EOL) === false) {
+        @unlink($tmp);
+        fwrite(STDERR, "Cannot write the temporary configuration\n");
+        return false;
+    }
+    @copy($file, $file . '.bak');
+    @chmod($tmp, 0644);
+    if (!@rename($tmp, $file)) {
+        @unlink($tmp);
+        fwrite(STDERR, "Cannot replace $file\n");
+        return false;
+    }
+    return true;
+}
+
+$command = isset($argv[1]) ? $argv[1] : '';
+$cfg = read_config($CONFIG_FILE);
+$catalog_file = (isset($cfg['paths']['catalog']) && $cfg['paths']['catalog'] !== '')
+    ? $cfg['paths']['catalog']
+    : $CATALOG_FILE;
+$catalog = load_catalog($catalog_file);
+
+switch ($command) {
+    case 'list':
+        $cfg = read_config($CONFIG_FILE);
+        $voice_dir = isset($cfg['paths']['voice_dir']) && $cfg['paths']['voice_dir'] !== ''
+            ? rtrim($cfg['paths']['voice_dir'], '/')
+            : '/usr/share/issabel-piper/voices';
+        printf("%-8s %-34s %-32s %s\n", 'CODE', 'LANGUAGE', 'FILE', 'INSTALLED');
+        foreach ($catalog['voices'] as $code => $voice) {
+            $file = isset($voice['file']) ? $voice['file'] : '';
+            $label = isset($voice['label']) ? $voice['label'] : $code;
+            $native = isset($voice['native']) ? $voice['native'] : '';
+            if ($native !== '' && $native !== $label) {
+                $label .= ' - ' . $native;
+            }
+            $installed = ($file !== '' && is_readable($voice_dir . '/' . $file)) ? 'yes' : 'no';
+            printf("%-8s %-34s %-32s %s\n", $code, $label, $file, $installed);
+        }
+        break;
+
+    case 'test':
+        if (!isset($argv[2]) || !isset($argv[3])) {
+            usage();
+        }
+        $code = normalize_code($catalog, $argv[2], '');
+        if ($code === '') {
+            fwrite(STDERR, "Unknown language: {$argv[2]}\n");
+            exit(1);
+        }
+        $text = implode(' ', array_slice($argv, 3));
+        if (!is_file($AGI_FILE)) {
+            fwrite(STDERR, "AGI not found: $AGI_FILE\n");
+            exit(1);
+        }
+        $params = json_encode(array('lang' => $code));
+        $cmd = escapeshellarg($AGI_FILE) . ' '
+             . escapeshellarg($text) . ' piper '
+             . escapeshellarg(base64_encode('/usr/bin/piper')) . ' '
+             . escapeshellarg(base64_encode($params)) . ' 1';
+        $start = microtime(true);
+        $output = shell_exec($cmd);
+        $elapsed = microtime(true) - $start;
+        if ($output === null) {
+            fwrite(STDERR, "The AGI returned no output\n");
+            exit(1);
+        }
+        echo $output;
+        if (substr($output, -1) !== "\n") {
+            echo "\n";
+        }
+        printf("elapsed: %.2f s\n", $elapsed);
+        break;
+
+    case 'default':
+        $arg = isset($argv[2]) ? $argv[2] : '';
+        $force = in_array('--force', $argv, true);
+        if ($arg === '' || $arg === '--from-gui') {
+            $current = current_default($CONFIG_FILE);
+            if ($arg === '') {
+                if (strtolower($current) === 'auto') {
+                    $resolved = normalize_code($catalog, gui_language(), 'en-US');
+                    echo "auto (resolved: $resolved)\n";
+                } else {
+                    echo ($current !== '' ? $current : '(not set)') . "\n";
+                }
+                break;
+            }
+            if (($current !== '' && strtolower($current) !== 'auto') && !$force) {
+                echo "default_lang is already pinned to $current (use --force to replace it)\n";
+                break;
+            }
+            $gui = gui_language();
+            $code = normalize_code($catalog, $gui, 'en-US');
+            if (!set_default($CONFIG_FILE, $code)) {
+                exit(1);
+            }
+            echo "default_lang = $code (from GUI language $gui)\n";
+            break;
+        }
+
+        $code = normalize_code($catalog, $arg, '');
+        if ($code === '') {
+            fwrite(STDERR, "Unknown language: $arg\n");
+            fwrite(STDERR, "Available: " . implode(', ', array_keys($catalog['voices'])) . "\n");
+            exit(1);
+        }
+        if (!set_default($CONFIG_FILE, $code)) {
+            exit(1);
+        }
+        echo "default_lang = $code\n";
+        break;
+
+    case '':
+    case 'help':
+    case '-h':
+    case '--help':
+        usage();
+        break;
+
+    default:
+        fwrite(STDERR, "Unknown command: $command\n");
+        usage();
+        break;
+}

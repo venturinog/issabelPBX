@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        26
+Release:        27
 Summary:        issabelPBX
 
 License:        GPL
@@ -10,7 +10,7 @@ BuildArch:      noarch
 
 BuildRequires:  bash php-cli
 Requires(pre):  asterisk
-Requires:       php-cli php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
+Requires:       php-cli php-pdo php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
 Requires:       gettext
 # The TTS AGI and module use the Piper runtime and its voice set.
 Requires:       issabel-piper
@@ -45,6 +45,8 @@ install -d %{buildroot}/etc/issabel
 install -m 644 %{buildroot}/usr/src/issabelPBX/additionals/etc/issabel/piper.conf %{buildroot}/etc/issabel/piper.conf
 install -d %{buildroot}/usr/libexec/issabel-tts
 install -m 755 %{buildroot}/usr/src/issabelPBX/additionals/usr/libexec/issabel-tts/piper-slots %{buildroot}/usr/libexec/issabel-tts/piper-slots
+install -d %{buildroot}/usr/bin
+install -m 755 %{buildroot}/usr/src/issabelPBX/additionals/usr/bin/issabel-tts-voice %{buildroot}/usr/bin/issabel-tts-voice
 
 %post
 
@@ -82,6 +84,10 @@ echo "asterisk is not running, installation process has been skipped"
 touch /installamp
 fi
 
+# Resolve [voice] default_lang = auto from the system/GUI language. The CLI
+# leaves a concrete value untouched, so an administrator choice survives.
+/usr/bin/issabel-tts-voice default --from-gui >/dev/null 2>&1 || :
+
 # Compile .po files to .mo
 for A in `find $PODIR -name \*.po`
 do
@@ -100,10 +106,20 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %config(noreplace) /etc/logrotate.d/issabelpbx.logrotate
 %config(noreplace) /etc/issabel/piper.conf
 /usr/libexec/issabel-tts/piper-slots
+/usr/bin/issabel-tts-voice
 
 %doc
 
 %changelog
+* Fri Nov 06 2026 Issabel Foundation <info@issabel.org> - 2.13.0-27
+- Make the Piper language selectable from the TTS, recordings and announcement
+  GUIs without entering a .onnx file name. The shared voices.json catalog
+  resolves language codes to model files; TTS entries can override the engine
+  language through the existing tts_parameters column, and the calendar no
+  longer keeps duplicate language maps. [voice] default_lang = auto follows the
+  system/GUI language at runtime, while a concrete code pins it. Add
+  issabel-tts-voice for list, test and default-language support tasks.
+
 * Fri Nov 06 2026 Issabel Foundation <info@issabel.org> - 2.13.0-26
 - Unify the TTS AGI under issabel-tts.agi and remove picotts.agi. One script
   now serves announcements, calendar reminders and recordings with a single

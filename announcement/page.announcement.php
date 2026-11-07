@@ -15,8 +15,15 @@ $return_ivr      = isset($_POST['return_ivr'])      ? $_POST['return_ivr']      
 $noanswer        = isset($_POST['noanswer'])        ? $_POST['noanswer']        : 0;
 $post_dest       = isset($_POST['post_dest'])       ? $_POST['post_dest']       : '';
 $repeat_msg      = isset($_POST['repeat_msg'])      ? $_POST['repeat_msg']      : '';
-$tts_lang        = isset($_POST['tts_lang'])        ? $_POST['tts_lang']        : '';
+$tts_lang        = (isset($_POST['tts_lang']) && is_string($_POST['tts_lang'])) ? $_POST['tts_lang'] : '';
 $tts_text        = isset($_POST['tts_text'])        ? $_POST['tts_text']        : '';
+
+if ($tts_lang !== '') {
+    $tts_lang = issabel_tts_normalize_lang($tts_lang);
+}
+if ($tts_lang === '') {
+    $tts_lang = issabel_tts_default_lang();
+}
 
 if (isset($_POST['goto0']) && $_POST['goto0']) {
     $post_dest = $_POST[ $_POST['goto0'] ];
@@ -166,17 +173,10 @@ if ($extdisplay) {
 
 <?php
 if(tts_enabled()) {
-    $arrOptionsLang = array(
-        'en-US'=>'en-US',
-        'en-GB'=>'en-GB',
-        'es-MX'=>'es-MX',
-        'es-ES'=>'es-ES',
-        'pt-BR'=>'pt-BR',
-        'pt-PT'=>'pt-PT',
-        'fr-FR'=>'fr-FR',
-        'it-IT'=>'it-IT',
-        'de-DE'=>'de-DE',
-    );
+    $arrOptionsLang = issabel_tts_language_options();
+    if ($tts_lang === '' || !isset($arrOptionsLang[$tts_lang])) {
+        $tts_lang = issabel_tts_default_lang();
+    }
 ?>
 
     <tr><td colspan="2"><br><h5><?php echo __("Text to Speech")?></h5></td></tr>

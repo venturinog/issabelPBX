@@ -373,3 +373,39 @@ msgstr "El texto que desea generar"
 
 msgid "There was a problem trying to generate the audio file using the TTS module"
 msgstr "Hubo un problema al intentar generar el archivo de audio utilizando el módulo TTS"
+
+msgid "Language"
+msgstr "Idioma"
+
+msgid "Language / Voice"
+msgstr "Idioma / Voz"
+
+msgid "Use engine default"
+msgstr "Usar el idioma del motor"
+
+msgid "Custom / advanced JSON"
+msgstr "Personalizado / JSON avanzado"
+
+msgid "The Piper voice used for this entry. The engine default is used when no language is selected."
+msgstr "La voz de Piper usada para esta entrada. Se usa la del motor cuando no se selecciona un idioma."
+
+msgid "The Piper voice used for this recording. The engine default is used when no language is selected."
+msgstr "La voz de Piper usada para esta grabación. Se usa la del motor cuando no se selecciona un idioma."
+
+msgid "Spanish (Mexico)"
+msgstr "Español (México)"
+
+msgid "English (United States)"
+msgstr "Inglés (Estados Unidos)"
+
+msgid "Portuguese (Brazil)"
+msgstr "Portugués (Brasil)"
+
+msgid "French (France)"
+msgstr "Francés (Francia)"
+
+msgid "Italian (Italy)"
+msgstr "Italiano (Italia)"
+
+msgid "German (Germany)"
+msgstr "Alemán (Alemania)"

@@ -86,7 +86,16 @@ switch ($action) {
             $tts_engine   = $tts_conf['ttsengine_engine'];
             $tts_cmd      = $tts_conf['ttsengine_cmd'];
             $tts_template = $tts_conf['ttsengine_template'];
-            $agi = '/var/lib/asterisk/agi-bin/issabel-tts.agi';
+            $tts_lang     = (isset($_REQUEST['tts_lang']) && is_string($_REQUEST['tts_lang'])) ? $_REQUEST['tts_lang'] : '';
+            if ($tts_engine === 'piper' && $tts_lang !== '') {
+                $tpl = json_decode((string)$tts_template, true);
+                if (!is_array($tpl)) {
+                    $tpl = array();
+                }
+                unset($tpl['voice']);
+                $tts_template = issabel_tts_merge_params($tpl, $tts_lang);
+            }
+            $agi = function_exists('issabel_tts_agi_path') ? issabel_tts_agi_path() : '/var/lib/asterisk/agi-bin/issabel-tts.agi';
             $cmd = escapeshellarg($agi).' '.escapeshellarg($text).' '.escapeshellarg($tts_engine)
                 .' '.escapeshellarg(base64_encode($tts_cmd)).' '.escapeshellarg(base64_encode($tts_template)).' 1';
             $output = shell_exec($cmd);
@@ -392,6 +401,8 @@ function recording_addpage($usersnum,$tab=1) {
     foreach($tts_engines as $idx=>$tts) {
         $engines[$idx]=$tts['ttsengine_description'];
     }
+    $tts_lang_selected = (isset($_REQUEST['tts_lang']) && is_string($_REQUEST['tts_lang']))
+        ? issabel_tts_normalize_lang($_REQUEST['tts_lang'], '') : '';
 ?>
     <form name="generate" action="<?php echo $_SERVER['PHP_SELF']."?display=recordings";?>" method="POST" onsubmit='return tts_onsubmit(this);'>
     <input type="hidden" name="action" value="generate">
@@ -403,11 +414,25 @@ function recording_addpage($usersnum,$tab=1) {
             <select name="ttsengine_engine" id="ttsengine_engine" tabindex="<?php echo ++$tabindex;?>" class='componentSelect'>
             <?php
                 foreach ($engines as $key=>$name) {
-                    echo '<option value="'.$key.'">'.$name."</option>\n";
+                    $engine_type = isset($tts_engines[$key]['ttsengine_engine']) ? $tts_engines[$key]['ttsengine_engine'] : '';
+                    echo '<option value="'.$key.'" data-engine="'.htmlspecialchars($engine_type, ENT_QUOTES, 'UTF-8').'">'.$name."</option>\n";
                 }
             ?>
             </select>
 
+        </td>
+    </tr>
+    <tr id="ttslangrow">
+        <td><a href="#" class="info"><?php echo __("Language")?><span><?php echo __("The Piper voice used for this recording. The engine default is used when no language is selected.");?></span></a></td>
+        <td>
+            <select name="tts_lang" id="tts_lang" tabindex="<?php echo ++$tabindex;?>" class='componentSelect'>
+                <option value=""><?php echo __("Use engine default"); ?></option>
+                <?php
+                foreach (issabel_tts_language_options() as $code => $label) {
+                    echo '<option value="'.htmlspecialchars($code, ENT_QUOTES, 'UTF-8').'"'.($code == $tts_lang_selected ? ' SELECTED' : '').'>'.htmlspecialchars($label, ENT_QUOTES, 'UTF-8')."</option>\n";
+                }
+                ?>
+            </select>
         </td>
     </tr>
     <tr>
@@ -844,6 +869,14 @@ function recordings_form_jscript() {
         $.LoadingOverlay('show');
         return true;
     }
+
+    function toggleTtsLanguage() {
+        var engine = $('#ttsengine_engine option:selected').data('engine');
+        $('#ttslangrow').toggle(engine === 'piper');
+    }
+
+    $('#ttsengine_engine').on('change', toggleTtsLanguage);
+    toggleTtsLanguage();
 
     </script>
 
