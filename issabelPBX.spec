@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        28
+Release:        29
 Summary:        issabelPBX
 
 License:        GPL
@@ -111,6 +111,10 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Wed Nov 11 2026 Issabel Foundation <info@issabel.org> - 2.13.0-29
+- Make the IVR Text to Speech text field as wide as the select boxes and show
+  five lines, so longer greetings are editable without scrolling.
+
 * Sat Nov 07 2026 Issabel Foundation <info@issabel.org> - 2.13.0-28
 - Add Text to Speech support to the IVR greeting. The prompt is generated as a
   cached audio file in custom/tts when the IVR is saved or the dialplan is
