@@ -371,6 +371,11 @@ if ($action == 'populatenpanxx') {
 }
 //
 // build trunks associative array
+// On a fresh install there are no trunks yet, so the loop below never runs.
+// Both arrays must exist anyway: count($trunks) is evaluated when adding a
+// route and a null argument is a fatal TypeError on PHP 8.
+$trunks = array();
+$trunkstate = array();
 foreach (core_trunks_listbyid() as $temp) {
 	$trunks[$temp['trunkid']] = $temp['name'];
 	$trunkstate[$temp['trunkid']] = $temp['disabled'];
@@ -466,7 +471,7 @@ foreach (core_trunks_listbyid() as $temp) {
 			<td>
 				<select name="route_seq" tabindex="<?php echo ++$tabindex;?>" class='componentSelect'>
 				<?php
-          if ($route_seq != 0) {
+          if ($route_seq != 0 && isset($routepriority[0])) {
             echo '<option value="0"'.($route_seq == 0 ? ' SELECTED' : '').'>'.sprintf(__('First before %s'),$routepriority[0]['name'])."</option>\n";
           }
           foreach ($routepriority as $key => $route) {
@@ -478,7 +483,7 @@ foreach (core_trunks_listbyid() as $temp) {
               echo '<option value="'.$key.'">'.sprintf(__('Before %s'),$route['name'])."</option>\n";
             }
           }
-          if ($extdisplay == '' | $route_seq != $last_seq) {
+          if (($extdisplay == '' | $route_seq != $last_seq) && isset($routepriority[$last_seq])) {
             echo '<option value="bottom"'.($route_seq == count($routepriority) ? ' SELECTED' : '').'>'.sprintf(__('Last after %s'),$routepriority[$last_seq]['name'])."</option>\n";
           }
 				?>		
@@ -692,7 +697,7 @@ foreach ($trunkpriority as $key=>$trunk) {
 ?>
 		<tr>
 			<td><?php echo $key; ?>&nbsp;&nbsp;
-		    <select id='trunkpri<?php echo $key ?>' name="trunkpriority[<?php echo $key ?>]" style="background: <?php echo $trunkstate[$trunk]=="off"?"#FFF":"#DDD" ?> ;" onChange="showDisable(<?php echo $key ?>); return true;" class='componentSelectAutoWidth'>
+		    <select id='trunkpri<?php echo $key ?>' name="trunkpriority[<?php echo $key ?>]" style="background: <?php echo (isset($trunkstate[$trunk]) && $trunkstate[$trunk]=="off")?"#FFF":"#DDD" ?> ;" onChange="showDisable(<?php echo $key ?>); return true;" class='componentSelectAutoWidth'>
 				<option value=""></option>
 				<?php 
 				foreach ($trunks as $name=>$display_description) {

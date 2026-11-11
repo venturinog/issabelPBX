@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        29
+Release:        30
 Summary:        issabelPBX
 
 License:        GPL
@@ -111,6 +111,15 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Wed Nov 11 2026 Issabel Foundation <info@issabel.org> - 2.13.0-30
+- Fix the Add Outbound Route page on a fresh install. The trunk map was only
+  built inside the core_trunks_listbyid() loop, so with no trunks configured
+  count() received null and PHP 8 aborted the page with a TypeError before
+  config.php could print the header, menu and footer; the page came out
+  unstyled and the Modern theme tab kept the previous title. Initialize the
+  trunk arrays and guard the empty route list and deleted-trunk references so
+  the page also stops logging PHP 8 warnings.
+
 * Wed Nov 11 2026 Issabel Foundation <info@issabel.org> - 2.13.0-29
 - Make the IVR Text to Speech text field as wide as the select boxes and show
   five lines, so longer greetings are editable without scrolling.
