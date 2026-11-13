@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        30
+Release:        31
 Summary:        issabelPBX
 
 License:        GPL
@@ -111,6 +111,23 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Fri Nov 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-31
+- Merge upstream 2.13.0.0 (PJSIP trunk identification, endpoint identifier
+  order and reviewed Git module deployments). Trunks gain an optional
+  Identify By setting that maps to identify_by, and a SIP Server Port that is
+  honoured in contact and registration destinations, including IPv6 and
+  outbound proxies. The generator no longer emits an identify object for
+  receive-registration trunks without a static server, so a registration
+  trunk is not silently downgraded to IP matching. Trunk and PJSIP Settings
+  forms validate identification methods, ports, authentication requirements
+  and the global endpoint identifier order before saving, and report errors
+  in the page instead of writing unusable configuration. PJSIP Settings adds
+  the global Endpoint Identifier Order field, generated as
+  pjsip_global_additional.conf and included from the shipped pjsip.conf, with
+  a guard that refuses to remove a method still used by a trunk. Adds
+  core/tests/pjsip-trunks.php (46 checks) and the tools/deploy-modules helper
+  with its own test suite.
+
 * Wed Nov 11 2026 Issabel Foundation <info@issabel.org> - 2.13.0-30
 - Fix the Add Outbound Route page on a fresh install. The trunk map was only
   built inside the core_trunks_listbyid() loop, so with no trunks configured
