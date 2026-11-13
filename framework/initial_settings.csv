@@ -113,7 +113,7 @@
 "Internal Use","AST_FUNC_SHARED","SHARED","","Asterisk Function SHARED","Set to the function name if the function is present in this Asterisk install","1","10","1","text"
 "Internal Use","ASTVERSION","16.2.1","","Asterisk Version","Last Asterisk Version detected (or forced)","1","10","1","text"
 "Internal Use","mainstyle_css_generated","","","Compressed Copy of Main CSS","internal use","1","10","1","text"
-"Internal Use","MODULE_REPO","http://cloud.issabel.org,http://cloud2.issabel.org","","Repo Server","repo server","0","10","1","text"
+"Internal Use","MODULE_REPO","http://cloud.issabel.ar,http://cloud2.issabel.ar","","Repo Server","repo server","0","10","1","text"
 "Internal Use","NOTICE_BROWSER_STATS","1","","Browser Stats Notice","Internal use to track if notice has been given that anonyous browser stats are being collected.","0","10","1","bool"
 "Internal Use","SIPUSERAGENT","IPBX","","SIP User Agent","User Agent prefix","0","10","1","text"
 "Remote CDR Database","CDRDBHOST","","","Remote CDR DB Host","DO NOT set this unless you know what you are doing. Only used if you do not use the default values provided by IssabelPBX.<br>Hostname of db server if not the same as AMPDBHOST.","1","3","1","text"

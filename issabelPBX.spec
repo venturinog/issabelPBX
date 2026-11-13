@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        31
+Release:        32
 Summary:        issabelPBX
 
 License:        GPL
@@ -111,6 +111,9 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Fri Nov 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-32
+- Default MODULE_REPO and the public IP lookup use the issabel.ar hosts.
+
 * Fri Nov 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-31
 - Merge upstream 2.13.0.0 (PJSIP trunk identification, endpoint identifier
   order and reviewed Git module deployments). Trunks gain an optional

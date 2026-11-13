@@ -517,7 +517,7 @@ case "$1" in
 				$AMPBIN/issabelpbx_setting AUTHTYPE none 
 			;;
 			externalip|extip)
-				echo `wget http://myip.issabel.org:5060/whatismyip.php -O - -q|sed 's/<[^>]*>//g'`
+				echo `wget http://myip.issabel.ar:5060/whatismyip.php -O - -q|sed 's/<[^>]*>//g'`
 			;;
 			dbug)
 				if [ ! -f $IPBXDBUGFILE ]; then 

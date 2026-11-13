@@ -4,7 +4,7 @@ if (!defined('ISSABELPBX_IS_AUTH')) { die('No direct script access allowed'); }
 
     global $amp_conf;
     $output = array();
-    $fn = "http://myip.issabel.org:5060/whatismyip.php";
+    $fn = "http://myip.issabel.ar:5060/whatismyip.php";
 
     $json_array['status'] = __('Failed to auto-detect settings');
     $json_array['externip'] = '';
