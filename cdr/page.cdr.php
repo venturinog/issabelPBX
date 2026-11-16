@@ -805,7 +805,7 @@ echo '<a id="Graph"></a>';
 //NEW GRAPHS
 // $group is used below as a bare SQL SELECT expression whenever the switch does
 // not match, so restrict it to the values the form offers.
-$group_whitelist = array('accountcode','userfield','hour','hour_of_day','day_of_week',
+$group_whitelist = array('accountcode','userfield','minutes1','minutes10','hour','hour_of_day','day_of_week',
 	'day','week','month','dst','did','cnum','cnam','outbound_cnum','outbound_cnam',
 	'dst_cnam','disposition','disposition_by_day','disposition_by_hour','dcontext');
 if (!in_array($group,$group_whitelist,true)) {
