@@ -1364,11 +1364,16 @@ outn("Checking for Asterisk version..");
 if ((preg_match('/^Asterisk (\d+(\.\d+)*)(-?(.*))$/', $verinfo, $matches)) ||
     (preg_match('/^Asterisk SVN-(\d+(\.\d+)*)(-?(.*))$/', $verinfo, $matches)) ||
     (preg_match('/^Asterisk certified\/(\d+(\.\d+)*)(-?(.*))$/', $verinfo, $matches))) {
-    if ((version_compare($matches[1], "1.6") < 0)) {
-        fatal("Asterisk 1.6, 1.8 or 10 is required for this version of IssabelPBX. Detected version is: ".$matches[1]);
+    if ((version_compare($matches[1], "11") < 0)) {
+        fatal("Asterisk 11 or newer is required for this version of IssabelPBX. Detected version is: ".$matches[1]);
     }
-    if (version_compare($matches[1], "23", "ge")) {
-        fatal("Asterisk 1.6, 1.8, 10, 11, 12, 13, 16, 18, 20, 21 or 22 is required for this version of IssabelPBX. Detected version is: ".$matches[1]);
+    // No hard upper bound: it used to abort with exit 1 every time the ISO
+    // moved to a newer release (20 -> 22 -> 24), and firstboot only reported
+    // an opaque failure. A newer major is untested, so warn and continue; the
+    // version-specific behaviour lives in the modules, which compare against
+    // the detected version themselves.
+    if (version_compare($matches[1], "25", "ge")) {
+        warn("Asterisk ".$matches[1]." is newer than the latest tested release (24); continuing with an untested version.");
     }
     out("{$matches[1]}");
     $asterisk_version = $matches[1];

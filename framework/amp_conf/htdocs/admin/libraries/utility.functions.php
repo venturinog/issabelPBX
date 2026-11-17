@@ -494,6 +494,15 @@ function fatal($text,$log=true) {
     exit(1);
 }
 
+// Non-fatal counterpart of fatal(): report the problem and keep going.
+//
+function warn($text,$log=true) {
+    echo "[WARN] ".$text.EOL;
+    if ($log) {
+        issabelpbx_log(IPBX_LOG_WARNING,$text);
+    }
+}
+
 // TODO: used in retrieve_conf, scan code base and remove if appropriate
 //
 function debug($text,$log=true) {

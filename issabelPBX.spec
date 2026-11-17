@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        32
+Release:        33
 Summary:        issabelPBX
 
 License:        GPL
@@ -111,6 +111,13 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Tue Nov 17 2026 Issabel Foundation <info@issabel.org> - 2.13.0-33
+- install_amp no longer aborts on an Asterisk release above a hard-coded
+  maximum. Asterisk 11 is now the minimum accepted version and anything newer
+  than the latest tested release (24) only logs a warning, so a new Asterisk
+  no longer makes firstboot fail with an opaque exit status right after the
+  "Installing IssabelPBX" notice.
+
 * Fri Nov 13 2026 Issabel Foundation <info@issabel.org> - 2.13.0-32
 - Default MODULE_REPO and the public IP lookup use the issabel.ar hosts.
 
