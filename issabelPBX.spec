@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        34
+Release:        35
 Summary:        issabelPBX
 
 License:        GPL
@@ -12,12 +12,13 @@ BuildRequires:  bash php-cli
 Requires(pre):  asterisk
 Requires:       php-cli php-pdo php-mysqlnd php-mbstring mariadb perl-Digest-MD5 perl-URI perl-libwww-perl sox mpg123 perl-LWP-Protocol-https
 Requires:       gettext
-# The TTS AGI and module need the Piper runtime and the default Spanish voice.
-# The English voice ships as well; the other voices are optional and selected
-# from the installer groups (issabel-tts-*) or installed with dnf.
+# The TTS AGI and module need the Piper runtime and the default voices
+# (Spanish, English and Portuguese).  The other voices are optional and
+# selected from the installer groups (issabel-tts-*) or installed with dnf.
 Requires:       issabel-piper
 Requires:       issabel-piper-voice-es
 Requires:       issabel-piper-voice-en
+Requires:       issabel-piper-voice-pt
 # issabelpbx_db extends the PEAR DB class (issabelpbx_DB.php:3), and
 # db_connect.php requires DB.php on every admin page via bootstrap.php.
 # Without /usr/share/pear/DB.php the whole GUI dies with
@@ -114,6 +115,10 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-35
+- Include the Portuguese voice in the default TTS set. The baseline now
+  installs the Spanish, English and Brazilian Portuguese Piper voices.
+
 * Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-34
 - Require only the Spanish and English Piper voices. The other voices are
   optional and selected from the installer TTS groups or installed with dnf.
