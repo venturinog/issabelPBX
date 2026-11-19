@@ -49,14 +49,16 @@ foreach ($entries as $e) {
 
     if($show_spoken==1) {
 
-        $row[] = form_input(
-				array(
-					'name'			=> 'entries[spoken][]',
-					'value'			=> $e['spoken'],
-					'placeholder'	=> __('spoken word'),
-                ),
-                '','class="input"'
+        $spoken_input = array(
+            'name'          => 'entries[spoken][]',
+            'value'         => $e['spoken'],
+            'placeholder'   => __('spoken word'),
         );
+        if (empty($asr_enabled)) {
+            $spoken_input['disabled'] = 'disabled';
+        }
+
+        $row[] = form_input($spoken_input, '', 'class="input"');
 
     }
     $row[] = '<button type="button" class="delete_entrie button is-small is-danger has-tooltip-right" data-tooltip="'.__('Delete').'"><span class="icon is-small""><i class="fa fa-trash"></i></span></button>';

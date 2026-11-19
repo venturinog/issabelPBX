@@ -573,6 +573,66 @@ if($db->IsError($check)) {
     out(__("not needed"));
 }
 
+outn(__("Checking for asr_lang.."));
+$sql = "SELECT asr_lang FROM ivr_details";
+$check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+if($db->IsError($check)) {
+    // Speech recognition language, independent from tts_lang.
+    $sql = "ALTER TABLE ivr_details ADD asr_lang VARCHAR(8) NOT NULL DEFAULT ''";
+    $result = $db->query($sql);
+    if($db->IsError($result)) {
+        out(__("fatal error"));
+        die_issabelpbx($result->getDebugInfo());
+    } else {
+        out(__("added"));
+    }
+} else {
+    out(__("not needed"));
+}
+
+outn(__("Checking for tts_enabled.."));
+$sql = "SELECT tts_enabled FROM ivr_details";
+$check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+if($db->IsError($check)) {
+    // Per-IVR feature switch, off by default: TTS is expensive in CPU and RAM.
+    $sql = "ALTER TABLE ivr_details ADD tts_enabled TINYINT(1) NOT NULL DEFAULT 0";
+    $result = $db->query($sql);
+    if($db->IsError($result)) {
+        out(__("fatal error"));
+        die_issabelpbx($result->getDebugInfo());
+    } else {
+        // Keep IVRs that already used text to speech working after the upgrade.
+        $db->query("UPDATE ivr_details SET tts_enabled = 1 WHERE TRIM(tts_text) <> ''");
+        out(__("added"));
+    }
+} else {
+    out(__("not needed"));
+}
+
+outn(__("Checking for asr_enabled.."));
+$sql = "SELECT asr_enabled FROM ivr_details";
+$check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+if($db->IsError($check)) {
+    // Per-IVR feature switch, off by default: Vosk is expensive in CPU and RAM.
+    $sql = "ALTER TABLE ivr_details ADD asr_enabled TINYINT(1) NOT NULL DEFAULT 0";
+    $result = $db->query($sql);
+    if($db->IsError($result)) {
+        out(__("fatal error"));
+        die_issabelpbx($result->getDebugInfo());
+    } else {
+        // Same for IVRs that already had spoken options. The spoken column is
+        // part of the same upgrade, so check it before using it.
+        $spoken = $db->getRow("SELECT spoken FROM ivr_entries", DB_FETCHMODE_ASSOC);
+        if (!DB::IsError($spoken)) {
+            $db->query("UPDATE ivr_details SET asr_enabled = 1 WHERE id IN "
+                . "(SELECT DISTINCT ivr_id FROM ivr_entries WHERE TRIM(spoken) <> '')");
+        }
+        out(__("added"));
+    }
+} else {
+    out(__("not needed"));
+}
+
 
 $issabelpbx_conf =& issabelpbx_conf::create();
 // Config Section

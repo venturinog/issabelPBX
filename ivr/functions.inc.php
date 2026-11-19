@@ -63,6 +63,108 @@ function ivr_check_alter_table() {
             error_log('ivr: could not add tts_text column: ' . $result->getMessage());
         }
     }
+
+    // Speech recognition (ASR) language. Independent from tts_lang: it selects
+    // which Vosk model listens to the caller, it does not change the prompts.
+    // Empty means "use the engine default" (res-speech-vosk.conf [general]).
+    $sql = "SELECT asr_lang FROM ivr_details";
+    $check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+    if (DB::IsError($check)) {
+        $sql = "ALTER TABLE ivr_details ADD asr_lang VARCHAR(8) NOT NULL DEFAULT ''";
+        $result = $db->query($sql);
+        if (DB::IsError($result)) {
+            error_log('ivr: could not add asr_lang column: ' . $result->getMessage());
+        }
+    }
+
+    // Per-IVR feature switches. Both are off by default because Vosk and Piper
+    // are optional and expensive in CPU and RAM.
+    $sql = "SELECT tts_enabled FROM ivr_details";
+    $check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+    if (DB::IsError($check)) {
+        $sql = "ALTER TABLE ivr_details ADD tts_enabled TINYINT(1) NOT NULL DEFAULT 0";
+        $result = $db->query($sql);
+        if (DB::IsError($result)) {
+            error_log('ivr: could not add tts_enabled column: ' . $result->getMessage());
+        } else {
+            // Keep IVRs that already used text to speech working after the
+            // upgrade; new IVRs still start with the switch off.
+            $db->query("UPDATE ivr_details SET tts_enabled = 1 WHERE TRIM(tts_text) <> ''");
+        }
+    }
+
+    $sql = "SELECT asr_enabled FROM ivr_details";
+    $check = $db->getRow($sql, DB_FETCHMODE_ASSOC);
+    if (DB::IsError($check)) {
+        $sql = "ALTER TABLE ivr_details ADD asr_enabled TINYINT(1) NOT NULL DEFAULT 0";
+        $result = $db->query($sql);
+        if (DB::IsError($result)) {
+            error_log('ivr: could not add asr_enabled column: ' . $result->getMessage());
+        } else {
+            // Same for IVRs that already had spoken options. The column may not
+            // exist yet at this point, so check before migrating the values.
+            $spoken = $db->getRow("SELECT spoken FROM ivr_entries", DB_FETCHMODE_ASSOC);
+            if (!DB::IsError($spoken)) {
+                $db->query("UPDATE ivr_details SET asr_enabled = 1 WHERE id IN "
+                    . "(SELECT DISTINCT ivr_id FROM ivr_entries WHERE TRIM(spoken) <> '')");
+            }
+        }
+    }
+}
+
+/**
+ * Languages that Vosk can listen for, limited to the models installed on this
+ * system. The key is the res-speech-vosk.conf category (it matches the model
+ * directory), the value is the label shown in the IVR form.
+ *
+ * Issabel uses "br" for Portuguese, but the Vosk model is "pt"; the select
+ * stores the Vosk code, so no runtime mapping is needed.
+ */
+function ivr_asr_language_options() {
+    $labels = array(
+        'es' => __('Spanish'),
+        'en' => __('English'),
+        'pt' => __('Portuguese (Brazil)'),
+        'fr' => __('French'),
+        'it' => __('Italian'),
+        'de' => __('German'),
+        'nl' => __('Dutch'),
+        'pl' => __('Polish'),
+        'ru' => __('Russian'),
+        'tr' => __('Turkish'),
+        'uk' => __('Ukrainian'),
+        'ca' => __('Catalan'),
+        'fa' => __('Persian'),
+        'ko' => __('Korean'),
+        'ja' => __('Japanese'),
+        'cn' => __('Chinese (Mandarin)'),
+        'sv' => __('Swedish'),
+        'hi' => __('Hindi'),
+    );
+
+    $options = array('' => __('Engine default'));
+    foreach ($labels as $code => $label) {
+        if (is_dir('/usr/share/issabel-asr/models/' . $code)) {
+            $options[$code] = $label;
+        }
+    }
+    return $options;
+}
+
+/** Drop any ASR language that is not offered by this system. */
+function ivr_asr_normalize_lang($value) {
+    $value = trim((string)$value);
+    $options = ivr_asr_language_options();
+    return isset($options[$value]) ? $value : '';
+}
+
+/** True when the Asterisk Vosk engine is available for the IVR. */
+function ivr_asr_available() {
+    if (!file_exists('/etc/asterisk/res-speech-vosk.conf')) {
+        return false;
+    }
+    $engineinfo = engine_getinfo();
+    return version_compare($engineinfo['version'], '16.16', 'ge');
 }
 
 /**
@@ -224,7 +326,7 @@ function ivr_get_config($engine) {
                 $ext->add($c, 's', '', new ext_wait('1'));
 
                 $ivr_announcement = recordings_get_file($ivr['announcement']);
-                if (empty($ivr['announcement']) && isset($ivr['tts_text']) && trim((string)$ivr['tts_text']) !== '') {
+                if (!empty($ivr['tts_enabled']) && empty($ivr['announcement']) && isset($ivr['tts_text']) && trim((string)$ivr['tts_text']) !== '') {
                     $tts_prompt = ivr_tts_prompt_filename($ivr['tts_text'], isset($ivr['tts_lang']) ? $ivr['tts_lang'] : '');
                     if ($tts_prompt !== '') {
                         $ivr_announcement = $tts_prompt;
@@ -240,7 +342,7 @@ function ivr_get_config($engine) {
                 $do_spoken_dialplan=0;
 
                 if ($entries) {
-                    if($show_spoken==1) {
+                    if($show_spoken==1 && !empty($ivr['asr_enabled'])) {
                         foreach($entries as $e) {
                             if($e['spoken']!='') {
                                 $do_spoken_dialplan=1;
@@ -254,6 +356,15 @@ function ivr_get_config($engine) {
                     $ext->add($c, 's', '', new ext_waitexten($ivr['timeout_time']));
                 } else {
                     $ext->add($c, 's', '', new ext_speechcreate());
+
+                    // ASR language, per IVR ('' = engine default from
+                    // res-speech-vosk.conf [general]). Setting it before
+                    // SpeechActivateGrammar makes the engine connect to the
+                    // right Vosk server (see SPEECH_ENGINE()).
+                    $asr_lang = isset($ivr['asr_lang']) ? trim((string)$ivr['asr_lang']) : '';
+                    if ($asr_lang !== '') {
+                        $ext->add($c, 's', '', new ext_setvar('SPEECH_ENGINE(language)', $asr_lang));
+                    }
 
                     // Grammar
                     if(isset($amp_conf["IVR_USE_VOSK_GRAMMAR"]) && $amp_conf["IVR_USE_VOSK_GRAMMAR"]==1) {
@@ -517,7 +628,8 @@ function ivr_configpageload() {
                     'invalid_recording', 'invalid_destination', 'invalid_ivr_ret',
                     'timeout_loops', 'timeout_time', 'timeout_retry_recording',
                     'timeout_recording', 'timeout_destination', 'timeout_ivr_ret',
-                    'retvm', 'tts_text', 'tts_lang');
+                    'retvm', 'tts_text', 'tts_lang', 'asr_lang',
+                    'tts_enabled', 'asr_enabled');
 
         //keep vairables set on new ivr's
         foreach ($deet as $d) {
@@ -537,6 +649,10 @@ function ivr_configpageload() {
                     break;
                 case 'timeout_time':
                     $ivr[$d] = 10;
+                    break;
+                case 'tts_enabled':
+                case 'asr_enabled':
+                    $ivr[$d] = 0;
                     break;
                 default:
                 $ivr[$d] = '';
@@ -566,6 +682,9 @@ function ivr_configpageload() {
                 'invalid_loops'=>3,
                 'tts_text'=>'',
                 'tts_lang'=>'',
+                'asr_lang'=>'',
+                'tts_enabled'=>0,
+                'asr_enabled'=>0,
                 'id'=>''
             );
 
@@ -588,11 +707,81 @@ function ivr_configpageload() {
     //general options
     $gen_section = __('IVR General Options');
     $currentcomponent->addguielem($gen_section,
-        new gui_textbox('name', stripslashes($ivr['name']), __('IVR Name'), __('Name of this IVR.')));
+        new gui_textbox('name', stripslashes($ivr['name']), __('IVR Name'), __('Name of this IVR.')), 5, 1);
     $currentcomponent->addguielem($gen_section,
         new gui_textbox('description', stripslashes($ivr['description']),
-        __('IVR Description'), __('Description of this ivr.')));
+        __('IVR Description'), __('Description of this ivr.')), 5, 1);
 
+    // Speech recognition and text to speech are optional features and both are
+    // expensive in CPU and RAM, so each one has its own switch, off by default.
+    $tts_options = (function_exists('issabel_tts_enabled') && issabel_tts_enabled() && function_exists('issabel_tts_language_options'))
+        ? issabel_tts_language_options() : array();
+    $tts_enabled = !empty($ivr['tts_enabled']);
+    $asr_enabled = !empty($ivr['asr_enabled']);
+
+    // Speech recognition (ASR). It listens to the caller; it does not change
+    // the voice used for prompts or announcements.
+    if (ivr_asr_available()) {
+        $asr_section = __('Speech Recognition (ASR)');
+        $asr_options = ivr_asr_language_options();
+        $asr_lang = isset($ivr['asr_lang']) ? (string)$ivr['asr_lang'] : '';
+        if (!isset($asr_options[$asr_lang])) {
+            $asr_lang = '';
+        }
+
+        $currentcomponent->addoptlist('asr_langs', false);
+        foreach ($asr_options as $code => $label) {
+            $currentcomponent->addoptlistitem('asr_langs', $code, $label);
+        }
+
+        $currentcomponent->addguielem($asr_section,
+            new gui_switch('asr_enabled', $asr_enabled, __('Enabled'),
+                __('High CPU and RAM usage: speech recognition loads a Vosk model and uses additional CPU and memory, especially with concurrent calls. Enable it only if the server has enough resources.')), 5, 2);
+
+        $currentcomponent->addguielem($asr_section,
+            new gui_selectbox('asr_lang', $currentcomponent->getoptlist('asr_langs'),
+                $asr_lang, __('Language'),
+                __('Language that speech recognition listens for. It does not change the prompts, recordings or text to speech, which follow the channel language.'),
+                false, '', !$asr_enabled), 5, 2);
+    }
+
+    // Text to Speech greeting. It is only used when no recording is selected.
+    if (!empty($tts_options)) {
+        $tts_section = __('Text to Speech');
+        $tts_lang = isset($ivr['tts_lang']) ? (string)$ivr['tts_lang'] : '';
+        if ($tts_lang === '' || !isset($tts_options[$tts_lang])) {
+            $tts_lang = function_exists('issabel_tts_default_lang') ? issabel_tts_default_lang() : 'en-US';
+        }
+        if (!isset($tts_options[$tts_lang])) {
+            $tts_codes = array_keys($tts_options);
+            $tts_lang = $tts_codes[0];
+        }
+        $tts_text = isset($ivr['tts_text']) ? (string)$ivr['tts_text'] : '';
+
+        $currentcomponent->addoptlist('tts_langs', false);
+        foreach ($tts_options as $code => $label) {
+            $currentcomponent->addoptlistitem('tts_langs', $code, $label);
+        }
+
+        $currentcomponent->addguielem($tts_section,
+            new gui_switch('tts_enabled', $tts_enabled, __('Enabled'),
+                __('High CPU and RAM usage: the greeting is synthesized with Piper on the server and each generation uses additional CPU and memory. Enable it only if the server has enough resources.')), 5, 3);
+
+        $currentcomponent->addguielem($tts_section,
+            new gui_selectbox('tts_lang', $currentcomponent->getoptlist('tts_langs'),
+                $tts_lang, __('Language'), __('Language used for the text to speech greeting.'), false, '', !$tts_enabled), 5, 3);
+
+        // Same width as the select boxes and at least five visible lines.
+        $currentcomponent->addguielem($tts_section,
+            new guielement('tts_text_row',
+                '<tr class="TexttoSpeech"><td>'
+                . ipbx_label(__('Text'), __('Text to be spoken when no recording is selected. The audio is generated by the system TTS engine.'))
+                . '</td><td><textarea rows="5" cols="24" style="width:100%" name="tts_text" id="tts_text"'
+                . ($tts_enabled ? '' : ' disabled="disabled"')
+                . '>'
+                . htmlentities($tts_text)
+                . '</textarea></td></tr>'), 5, 3);
+    }
 
     //dtmf options
     $section = __('IVR Options (DTMF)');
@@ -612,67 +801,10 @@ function ivr_configpageload() {
         $currentcomponent->addoptlistitem('ivr_repeat_loops', $i, $i);
     }
 
-    // Text to Speech greeting. It is only used when no recording is selected.
-    $tts_options = (function_exists('issabel_tts_enabled') && issabel_tts_enabled() && function_exists('issabel_tts_language_options'))
-        ? issabel_tts_language_options() : array();
-
     //greating to be played on entry to the ivr
     $currentcomponent->addguielem($section,
         new gui_selectbox('announcement', $currentcomponent->getoptlist('recordings'),
-            $ivr['announcement'], __('Announcement'), __('Greeting to be played on entry to the Ivr.'), false,
-            !empty($tts_options) ? 'ivrToggleTts();' : ''));
-
-    if (!empty($tts_options)) {
-        $tts_lang = isset($ivr['tts_lang']) ? (string)$ivr['tts_lang'] : '';
-        if ($tts_lang === '' || !isset($tts_options[$tts_lang])) {
-            $tts_lang = function_exists('issabel_tts_default_lang') ? issabel_tts_default_lang() : 'en-US';
-        }
-        if (!isset($tts_options[$tts_lang])) {
-            $tts_codes = array_keys($tts_options);
-            $tts_lang = $tts_codes[0];
-        }
-        $tts_text = isset($ivr['tts_text']) ? (string)$ivr['tts_text'] : '';
-
-        $currentcomponent->addoptlist('tts_langs', false);
-        foreach ($tts_options as $code => $label) {
-            $currentcomponent->addoptlistitem('tts_langs', $code, $label);
-        }
-
-        $currentcomponent->addguielem($section,
-            new guielement('tts_heading', '<tr><td colspan="2"><br><h5>' . __('Text to Speech') . '</h5></td></tr>'));
-
-        $currentcomponent->addguielem($section,
-            new gui_selectbox('tts_lang', $currentcomponent->getoptlist('tts_langs'),
-                $tts_lang, __('Language'), __('Language used for the text to speech greeting.'), false));
-
-        // Same width as the select boxes and at least five visible lines.
-        $currentcomponent->addguielem($section,
-            new guielement('tts_text_row',
-                '<tr class="IVROptionsDTMF"><td>'
-                . ipbx_label(__('Text'), __('Text to be spoken when no recording is selected. The audio is generated by the system TTS engine.'))
-                . '</td><td><textarea rows="5" cols="24" style="width:100%" name="tts_text" id="tts_text">'
-                . htmlentities($tts_text)
-                . '</textarea></td></tr>'));
-
-        $tts_script = <<<'JS'
-<tr><td colspan="2">
-<script>
-function ivrToggleTts() {
-    var hasRecording = $('#announcement').val() !== '' && $('#announcement').val() !== null;
-    $('#tts_lang').prop('disabled', hasRecording).trigger('chosen:updated');
-    $('#tts_text').prop('disabled', hasRecording);
-}
-$(function () {
-    $('#announcement').on('change', ivrToggleTts);
-    ivrToggleTts();
-});
-</script>
-</td></tr>
-JS;
-        $currentcomponent->addguielem($section, new guielement('tts_script', $tts_script));
-    }
-
-
+            $ivr['announcement'], __('Announcement'), __('Greeting to be played on entry to the Ivr.'), false), 5, 4);
 
     //direct dial
     $currentcomponent->addoptlistitem('directdial', '', __('Disabled'));
@@ -758,7 +890,7 @@ JS;
 
     $section = __('IVR Entries');
     //draw the entries part of the table. A bit hacky perhaps, but hey - it works!
-    $currentcomponent->addguielem($section, new guielement('rawhtml', ivr_draw_entries($ivr['id']), ''), 6);
+    $currentcomponent->addguielem($section, new guielement('rawhtml', ivr_draw_entries($ivr['id']), ''), 5, 5);
 }
 
 function ivr_configpageinit($pagename) {
@@ -803,8 +935,8 @@ function ivr_configprocess(){
         $action        = isset($_REQUEST['action'])    ? $_REQUEST['action']    : '';
         $entries    = isset($_REQUEST['entries'])    ? $_REQUEST['entries']    : '';
 
-        // The TTS fields are disabled when a recording is selected, so they are
-        // not submitted. Preserve the stored values instead of clearing them.
+        // The TTS fields are disabled while the feature is off, so they are not
+        // submitted. Preserve the stored values instead of clearing them.
         $vars['tts_text'] = (isset($_REQUEST['tts_text']) && is_string($_REQUEST['tts_text'])) ? $_REQUEST['tts_text'] : null;
         $vars['tts_lang'] = (isset($_REQUEST['tts_lang']) && is_string($_REQUEST['tts_lang'])) ? $_REQUEST['tts_lang'] : null;
         if ($vars['tts_text'] === null || $vars['tts_lang'] === null) {
@@ -825,6 +957,22 @@ function ivr_configprocess(){
             $vars['tts_lang'] = trim((string)$vars['tts_lang']);
         }
 
+        // ASR language. Kept apart from tts_lang on purpose: it selects the
+        // Vosk model used for listening, not the voice used for prompts. The
+        // select is disabled while ASR is off, so preserve the stored value.
+        $vars['asr_lang'] = (isset($_REQUEST['asr_lang']) && is_string($_REQUEST['asr_lang']))
+            ? ivr_asr_normalize_lang($_REQUEST['asr_lang']) : null;
+        if ($vars['asr_lang'] === null) {
+            $existing_asr = (!empty($vars['extdisplay']) && $action !== 'delete')
+                ? ivr_get_details($vars['extdisplay']) : array();
+            $vars['asr_lang'] = ivr_asr_normalize_lang(isset($existing_asr['asr_lang']) ? $existing_asr['asr_lang'] : '');
+        }
+
+        // Per-IVR feature switches. Appended last so their position matches the
+        // column order used by ivr_save_details().
+        $vars['tts_enabled'] = empty($_REQUEST['tts_enabled']) ? '0' : '1';
+        $vars['asr_enabled'] = empty($_REQUEST['asr_enabled']) ? '0' : '1';
+
         switch ($action) {
             case 'save':
                 //get real dest
@@ -838,6 +986,7 @@ function ivr_configprocess(){
                 $_SESSION['msgtype']='success';
                 $_SESSION['msgtstamp']=time();
                 if (function_exists('issabel_tts_enabled') && issabel_tts_enabled()
+                    && !empty($vars['tts_enabled'])
                     && empty($vars['announcement']) && trim((string)$vars['tts_text']) !== '') {
                     $tts_prompt = ivr_tts_prompt_filename($vars['tts_text'], $vars['tts_lang']);
                     if ($tts_prompt === '') {
@@ -877,8 +1026,8 @@ function ivr_save_details($vals){
                 retvm, timeout_time, timeout_recording,
                 timeout_retry_recording, timeout_destination, timeout_loops,
                 timeout_append_announce, invalid_append_announce, timeout_ivr_ret, invalid_ivr_ret,
-                tts_text, tts_lang)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                tts_text, tts_lang, asr_lang, tts_enabled, asr_enabled)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
         $foo = $db->query($sql, $vals);
         if($db->IsError($foo)) {
             die_issabelpbx(print_r($vals,true).' '.$foo->getDebugInfo());
@@ -891,8 +1040,8 @@ function ivr_save_details($vals){
                 retvm, timeout_time, timeout_recording,
                 timeout_retry_recording, timeout_destination, timeout_loops,
                 timeout_append_announce, invalid_append_announce, timeout_ivr_ret, invalid_ivr_ret,
-                tts_text, tts_lang)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+                tts_text, tts_lang, asr_lang, tts_enabled, asr_enabled)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
         $foo = $db->query($sql, $vals);
         if($db->IsError($foo)) {
@@ -911,6 +1060,14 @@ function ivr_save_details($vals){
 //save ivr entires
 function ivr_save_entries($id, $entries){
     global $db;
+
+    // While speech recognition is off the Spoken inputs are disabled and are
+    // not submitted. Keep the stored value for the same option selection.
+    $previous_spoken = array();
+    foreach (ivr_get_entries($id) as $previous) {
+        $previous_spoken[$previous['selection']] = $previous['spoken'];
+    }
+
     $id = $db->escapeSimple($id);
     sql('DELETE FROM ivr_entries WHERE ivr_id = "' . $id . '"');
 
@@ -923,7 +1080,9 @@ function ivr_save_entries($id, $entries){
                             'selection'     => $entries['ext'][$i],
                             'dest'        => $entries['goto'][$i],
                             'ivr_ret'    => (isset($entries['ivr_ret'][$i]) ? intval($entries['ivr_ret'][$i]) : ''),
-                            'spoken'    => isset($entries['spoken'][$i])?$entries['spoken'][$i]:''
+                            'spoken'    => isset($entries['spoken'][$i])
+                                ? $entries['spoken'][$i]
+                                : (isset($previous_spoken[$entries['ext'][$i]]) ? $previous_spoken[$entries['ext'][$i]] : '')
                         );
             }
 
@@ -969,6 +1128,14 @@ function ivr_draw_entries($id){
     $headers        = mod_func_iterator('draw_entries_table_header_ivr');
     $ivr_entries    = ivr_get_entries($id);
 
+    // Speech recognition is off by default, so the Spoken inputs start disabled
+    // for new IVRs and for IVRs that have not enabled ASR.
+    $asr_enabled = false;
+    if ($id !== '' && $id !== null) {
+        $ivr_details = ivr_get_details($id);
+        $asr_enabled = !empty($ivr_details['asr_enabled']);
+    }
+
     if ($ivr_entries) {
         foreach ($ivr_entries as $k => $e) {
             $entries[$k]= $e;
@@ -985,7 +1152,8 @@ function ivr_draw_entries($id){
     return load_view(dirname(__FILE__) . '/views/entries.php',
                 array(
                     'headers'    => $headers,
-                    'entries'    =>  $entries
+                    'entries'    =>  $entries,
+                    'asr_enabled' => $asr_enabled
                 )
             );
 

@@ -255,3 +255,12 @@ msgid ""
 "Response) menus. These can be used to send callers to different locations "
 "(eg, Press 1 for sales) and/or allow direct-dialing of extension numbers."
 msgstr ""
+
+msgid "Enabled"
+msgstr ""
+
+msgid "High CPU and RAM usage: speech recognition loads a Vosk model and uses additional CPU and memory, especially with concurrent calls. Enable it only if the server has enough resources."
+msgstr ""
+
+msgid "High CPU and RAM usage: the greeting is synthesized with Piper on the server and each generation uses additional CPU and memory. Enable it only if the server has enough resources."
+msgstr ""

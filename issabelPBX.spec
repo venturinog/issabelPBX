@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        35
+Release:        37
 Summary:        issabelPBX
 
 License:        GPL
@@ -115,6 +115,22 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-37
+- IVR: split Text to Speech and Speech Recognition (ASR) into their own
+  sections and add an Enabled switch to each one, off by default and with a
+  CPU/RAM warning in the help. With ASR off the Spoken inputs are disabled and
+  the generated dialplan does not use speech recognition; with TTS off the
+  language and text fields are disabled and the greeting is not synthesized.
+  New `tts_enabled` and `asr_enabled` columns; existing IVRs that already used
+  either feature are migrated as enabled.
+
+* Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-36
+- IVR: add a per-IVR speech recognition (ASR) language, independent from the
+  TTS language. New `asr_lang` column, a select in the IVR form limited to the
+  installed Vosk models, and Set(SPEECH_ENGINE(language)) in the generated
+  dialplan. Empty keeps the previous behaviour (res-speech-vosk.conf
+  [general]). See VOSKtodo.md.
+
 * Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-35
 - Include the Portuguese voice in the default TTS set. The baseline now
   installs the Spanish, English and Brazilian Portuguese Piper voices.

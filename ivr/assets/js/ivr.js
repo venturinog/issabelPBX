@@ -75,6 +75,7 @@ jQuery(function($){
         bind_dests_double_selects(); // bind events before chosen on cloned element
         $('.destdropdown:not(".haschosen")').addClass('haschosen').chosen({disable_search: false, inherit_select_classes: true, width: '100%'});
         $('.destdropdown2:not(".haschosen")').addClass('haschosen').chosen({disable_search: true, inherit_select_classes: true, width: '100%'});
+        ivrApplyAsrState();
     });
 });
 
@@ -83,13 +84,42 @@ up.compiler('.content', function(element,data) {
     //on load, hide elements that may need to be hidden
     invalid_elements();
     timeout_elements();
+    ivrApplyTtsState();
+    ivrApplyAsrState();
 
     //show/hide invalid elements on change
     $('#invalid_loops').on('change', invalid_elements)
 
     //show/hide timeout elements on change
     $('#timeout_loops').on('change', timeout_elements)
+
+    //enable/disable the feature fields on change
+    $('#tts_enabled').off('change.ivr').on('change.ivr', ivrApplyTtsState);
+    $('#asr_enabled').off('change.ivr').on('change.ivr', ivrApplyAsrState);
 });
+
+// Disable a select and keep the Chosen widget in sync (chosen:updated alone
+// does not recalculate the disabled state).
+function ivrSetSelectDisabled(selector, disabled) {
+    var field = $(selector);
+    if (!field.length) return;
+    field.prop('disabled', disabled).trigger('chosen:updated');
+    field.next('.chosen-container').toggleClass('chosen-disabled', disabled);
+}
+
+function ivrApplyTtsState() {
+    if (!$('#tts_enabled').length) return;
+    var enabled = $('#tts_enabled').is(':checked');
+    ivrSetSelectDisabled('#tts_lang', !enabled);
+    $('#tts_text').prop('disabled', !enabled);
+}
+
+function ivrApplyAsrState() {
+    if (!$('#asr_enabled').length) return;
+    var enabled = $('#asr_enabled').is(':checked');
+    ivrSetSelectDisabled('#asr_lang', !enabled);
+    $('input[name="entries[spoken][]"]').prop('disabled', !enabled);
+}
 
 function restore_form_elemens() {
     $('.destdropdown, .destdropdown2').prop('disabled',false)
