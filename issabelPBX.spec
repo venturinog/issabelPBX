@@ -1,6 +1,6 @@
 Name:           issabelPBX
 Version:        2.13.0
-Release:        37
+Release:        38
 Summary:        issabelPBX
 
 License:        GPL
@@ -115,6 +115,14 @@ chmod 644 /etc/logrotate.d/issabelpbx.logrotate
 %doc
 
 %changelog
+* Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-38
+- IVR: keep the Vosk daemon in sync with the IVR configuration. On every apply
+  the dialplan generator starts and enables issabel-vosk-server when at least
+  one IVR has speech recognition enabled and spoken options, and stops and
+  disables it otherwise, so the service only runs when it is actually used.
+  The call goes through the privileged helper voskctl; without the Vosk packages
+  nothing happens and the IVR keeps working without speech recognition.
+
 * Wed Nov 18 2026 Issabel Foundation <info@issabel.org> - 2.13.0-37
 - IVR: split Text to Speech and Speech Recognition (ASR) into their own
   sections and add an Enabled switch to each one, off by default and with a

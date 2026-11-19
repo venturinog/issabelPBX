@@ -168,6 +168,46 @@ function ivr_asr_available() {
 }
 
 /**
+ * Start or stop the Vosk daemon according to the IVR configuration.
+ *
+ * The GUI is the authority here: the daemon only runs while at least one IVR
+ * has speech recognition enabled *and* has spoken options, which is the only
+ * case where the dialplan emits SpeechCreate(). Called from ivr_get_config(),
+ * so every apply re-syncs the state, including backup restores and direct
+ * database edits, not just the save/delete buttons.
+ *
+ * The service is optional: without the Vosk packages there is no helper and
+ * nothing happens, the IVR keeps working without speech recognition.
+ */
+function ivr_asr_service_sync() {
+    global $db;
+
+    $helper = '/usr/share/issabel/privileged/voskctl';
+    if (!file_exists($helper)) {
+        return;
+    }
+
+    $sql = 'SELECT COUNT(*) FROM ivr_details d '
+         . 'INNER JOIN ivr_entries e ON e.ivr_id = d.id '
+         . "WHERE d.asr_enabled = 1 AND TRIM(e.spoken) <> ''";
+    $count = $db->getOne($sql);
+    if (DB::IsError($count)) {
+        // Leave the service alone on a query error: stopping it because of a
+        // transient DB failure would silently break an IVR that uses it.
+        return;
+    }
+
+    $action = ((int)$count > 0) ? 'start' : 'stop';
+    $output = array();
+    $retval = 0;
+    exec('/usr/bin/issabel-helper voskctl ' . $action . ' 2>&1', $output, $retval);
+    if ($retval != 0) {
+        error_log('ivr: voskctl ' . $action . ' failed (' . $retval . '): '
+            . implode(' ', $output));
+    }
+}
+
+/**
  * Synthesize a TTS prompt with the shared Piper engine.
  *
  * Returns the absolute path of the generated file, or an empty string when
@@ -268,6 +308,10 @@ function ivr_get_config($engine) {
 
     switch($engine) {
         case "asterisk":
+            // Keep the Vosk daemon in sync with the IVR configuration: it only
+            // runs while some IVR uses speech recognition.
+            ivr_asr_service_sync();
+
             $ddial_contexts = array();
             $ivrlist = ivr_get_details();
             if(!is_array($ivrlist)) {
